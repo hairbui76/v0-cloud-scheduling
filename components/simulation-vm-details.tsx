@@ -31,7 +31,7 @@ export default function SimulationVMDetails({
 
     // For the sample workflow, we need to respect the predefined start and end times
     // These are hardcoded values from the DSAWS paper example
-    const taskTimes = {
+    const sampleWorkflowTimes: Record<string, { start: number; end: number }> = {
       // DSAWS VM1 tasks
       t2: { start: 2, end: 6 },
       t5: { start: 6, end: 15 },
@@ -44,17 +44,42 @@ export default function SimulationVMDetails({
       t3: { start: 2, end: 8 },
       t6: { start: 8, end: 13 },
       t9: { start: 13, end: 27 },
-      // Default values for other tasks
-      default: { start: 0, end: 10 },
     }
 
-    // Get the task times (use default if not found)
-    const times = taskTimes[taskId] || taskTimes.default
+    // Check if this is a sample workflow task
+    if (sampleWorkflowTimes[taskId]) {
+      const times = sampleWorkflowTimes[taskId]
+      if (simulationTime >= times.end) {
+        return "success" // Completed
+      } else if (simulationTime >= times.start) {
+        return "default" // Running
+      } else {
+        return "outline" // Waiting
+      }
+    }
 
-    // Determine status based on simulation time and task times
-    if (simulationTime >= times.end) {
+    // For non-sample workflow tasks, use a more dynamic approach
+    // Extract task number (e.g., "t123" -> 123)
+    const taskNumber = Number.parseInt(taskId.substring(1), 10) || 0
+
+    // Calculate level (roughly) based on task number
+    // This is a heuristic that assumes tasks are numbered in a way that correlates with levels
+    const level = Math.floor(taskNumber / 100) + 1
+
+    // Calculate estimated start time based on level and task number within level
+    const levelStartTime = (level - 1) * 15 // Each level starts roughly 15 seconds after the previous
+    const taskWithinLevel = taskNumber % 100
+    const taskStartOffset = (taskWithinLevel / 100) * 10 // Distribute tasks within a 10-second window
+    const estimatedStart = levelStartTime + taskStartOffset
+
+    // Runtime is roughly 5-15 seconds
+    const estimatedRuntime = 5 + (taskNumber % 10)
+    const estimatedEnd = estimatedStart + estimatedRuntime
+
+    // Determine status based on simulation time and estimated times
+    if (simulationTime >= estimatedEnd) {
       return "success" // Completed
-    } else if (simulationTime >= times.start) {
+    } else if (simulationTime >= estimatedStart) {
       return "default" // Running
     } else {
       return "outline" // Waiting

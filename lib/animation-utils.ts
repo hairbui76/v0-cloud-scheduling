@@ -39,52 +39,9 @@ export const updateTaskStatus = (
   } else {
     // For other workflows, use the dependency-based approach
     // First pass: Mark tasks as completed if time has passed and dependencies are completed
-    dsawsTasksRef.current = dsawsTasksRef.current.map((task) => {
-      // Only process tasks that aren't already completed
-      if (!task.completed) {
-        // Check if all dependencies are completed
-        const dependenciesCompleted = task.dependencies.every((depId) => {
-          const depTask = dsawsTasksRef.current.find((t) => t.id === depId)
-          return depTask?.completed === true
-        })
-
-        // Mark as completed if time has passed AND all dependencies are completed
-        if (currentTime >= (task.endTime || Number.POSITIVE_INFINITY) && dependenciesCompleted) {
-          return { ...task, completed: true }
-        }
-      }
-      return task
-    })
-
-    // Update CGA tasks with the same logic
-    cgaTasksRef.current = cgaTasksRef.current.map((task) => {
-      if (!task.completed) {
-        const dependenciesCompleted = task.dependencies.every((depId) => {
-          const depTask = cgaTasksRef.current.find((t) => t.id === depId)
-          return depTask?.completed === true
-        })
-
-        if (currentTime >= (task.endTime || Number.POSITIVE_INFINITY) && dependenciesCompleted) {
-          return { ...task, completed: true }
-        }
-      }
-      return task
-    })
-
-    // Update Dyna tasks with the same logic
-    dynaTasksRef.current = dynaTasksRef.current.map((task) => {
-      if (!task.completed) {
-        const dependenciesCompleted = task.dependencies.every((depId) => {
-          const depTask = dynaTasksRef.current.find((t) => t.id === depId)
-          return depTask?.completed === true
-        })
-
-        if (currentTime >= (task.endTime || Number.POSITIVE_INFINITY) && dependenciesCompleted) {
-          return { ...task, completed: true }
-        }
-      }
-      return task
-    })
+    updateTasksWithDependencies(dsawsTasksRef, currentTime)
+    updateTasksWithDependencies(cgaTasksRef, currentTime)
+    updateTasksWithDependencies(dynaTasksRef, currentTime)
   }
 
   // Update VM current times
@@ -120,32 +77,35 @@ export const updateTaskStatus = (
   })
 }
 
-// Force complete all tasks - used as a fallback
-export const forceCompleteAllTasks = (
-  dsawsTasksRef: React.MutableRefObject<Task[]>,
-  cgaTasksRef: React.MutableRefObject<Task[]>,
-  dynaTasksRef: React.MutableRefObject<Task[]>,
-  setDsawsTasks: React.Dispatch<React.SetStateAction<Task[]>>,
-  setCgaTasks: React.Dispatch<React.SetStateAction<Task[]>>,
-  setDynaTasks: React.Dispatch<React.SetStateAction<Task[]>>,
-  setDsawsProgress: React.Dispatch<React.SetStateAction<number>>,
-  setCgaProgress: React.Dispatch<React.SetStateAction<number>>,
-  setDynaProgress: React.Dispatch<React.SetStateAction<number>>,
-) => {
-  // Update refs first
-  dsawsTasksRef.current = dsawsTasksRef.current.map((task) => ({ ...task, completed: true }))
-  cgaTasksRef.current = cgaTasksRef.current.map((task) => ({ ...task, completed: true }))
-  dynaTasksRef.current = dynaTasksRef.current.map((task) => ({ ...task, completed: true }))
+// Helper function to update tasks with dependencies
+function updateTasksWithDependencies(tasksRef: React.MutableRefObject<Task[]>, currentTime: number) {
+  // First, create a map of task IDs to their completion status
+  const taskCompletionMap = new Map<string, boolean>()
+  tasksRef.current.forEach((task) => {
+    taskCompletionMap.set(task.id, task.completed)
+  })
 
-  // Then update state (this will be batched)
-  setDsawsTasks([...dsawsTasksRef.current])
-  setCgaTasks([...cgaTasksRef.current])
-  setDynaTasks([...dynaTasksRef.current])
+  // Then update tasks based on dependencies
+  tasksRef.current = tasksRef.current.map((task) => {
+    // Only process tasks that aren't already completed
+    if (!task.completed) {
+      // Check if all dependencies are completed
+      const dependenciesCompleted = task.dependencies.every((depId) => {
+        return taskCompletionMap.get(depId) === true
+      })
 
-  // Set progress to 100%
-  setDsawsProgress(100)
-  setCgaProgress(100)
-  setDynaProgress(100)
+      // Mark as completed if time has passed AND all dependencies are completed
+      if (currentTime >= (task.endTime || Number.POSITIVE_INFINITY) && dependenciesCompleted) {
+        return { ...task, completed: true }
+      }
+    }
+    return task
+  })
+
+  // Update the completion map for the next iteration
+  tasksRef.current.forEach((task) => {
+    taskCompletionMap.set(task.id, task.completed)
+  })
 }
 
 // Calculate progress and costs

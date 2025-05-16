@@ -136,9 +136,9 @@ export const initializeSimulation = (
         taskList.push({
           id: `t${taskId}`,
           name: `Task ${taskId}`,
-          runtime: Math.floor(Math.random() * 10) + 5, // Random runtime between 5-15 seconds
+          runtime: 0, // Will be set later
           dependencies,
-          rank: numTasks - taskId + 10, // Simple rank calculation
+          rank: 0, // Will be set later
           completed: false,
           level,
         })
@@ -155,16 +155,68 @@ export const initializeSimulation = (
 
   // Create tasks based on the paper example for the sample workflow
   const dsawsTaskList: Task[] =
-    workflowType === "sample" ? getSampleWorkflowTasks() : generateTasks(numTasks, dsawsVMList)
+    workflowType === "sample" ? getSampleWorkflowTasks() : generateTasks(numTasks, dsawsVMList, workflowType, "DSAWS")
+
+  // For CGA and Dyna, create tasks with different characteristics
+  const cgaTaskList: Task[] =
+    workflowType === "sample"
+      ? modifySampleWorkflowForAlgorithm(getSampleWorkflowTasks(), "CGA")
+      : generateTasks(numTasks, cgaVMList, workflowType, "CGA")
+
+  const dynaTaskList: Task[] =
+    workflowType === "sample"
+      ? modifySampleWorkflowForAlgorithm(getSampleWorkflowTasks(), "Dyna")
+      : generateTasks(numTasks, dynaVMList, workflowType, "Dyna")
 
   return {
     dsawsVMs: dsawsVMList,
     cgaVMs: cgaVMList,
     dynaVMs: dynaVMList,
     dsawsTasks: dsawsTaskList,
-    cgaTasks: workflowType === "sample" ? getSampleWorkflowTasks() : generateTasks(numTasks, cgaVMList),
-    dynaTasks: workflowType === "sample" ? getSampleWorkflowTasks() : generateTasks(numTasks, dynaVMList),
+    cgaTasks: cgaTaskList,
+    dynaTasks: dynaTaskList,
   }
+}
+
+// Helper function to modify sample workflow tasks for different algorithms
+function modifySampleWorkflowForAlgorithm(tasks: Task[], algorithm: string): Task[] {
+  // Create a deep copy of the tasks
+  const modifiedTasks = JSON.parse(JSON.stringify(tasks)) as Task[]
+
+  // Apply algorithm-specific modifications
+  const algorithmFactors = {
+    CGA: {
+      runtimeMultiplier: 1.2,
+      startTimeOffset: 1,
+    },
+    Dyna: {
+      runtimeMultiplier: 1.1,
+      startTimeOffset: 0.5,
+    },
+    DSAWS: {
+      runtimeMultiplier: 1.0,
+      startTimeOffset: 0,
+    },
+  }
+
+  const factor = algorithmFactors[algorithm] || algorithmFactors.DSAWS
+
+  // Modify each task
+  return modifiedTasks.map((task) => {
+    // Adjust runtime
+    const newRuntime = Math.ceil(task.runtime * factor.runtimeMultiplier)
+
+    // Adjust start and end times
+    const newStartTime = task.startTime + factor.startTimeOffset
+    const newEndTime = newStartTime + newRuntime
+
+    return {
+      ...task,
+      runtime: newRuntime,
+      startTime: newStartTime,
+      endTime: newEndTime,
+    }
+  })
 }
 
 // Re-export calculateCost for convenience

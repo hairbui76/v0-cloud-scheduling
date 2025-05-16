@@ -2,20 +2,21 @@
 
 import { useEffect, useRef, useState, useImperativeHandle, forwardRef } from "react"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Button } from "@/components/ui/button"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { useSimulation } from "@/context/simulation-context"
 import { FastForward } from "lucide-react"
+import { Button } from "@/components/ui/button"
 
 // Import components
 import WorkflowDiagram from "@/components/workflow-diagram"
 import SimulationOverview from "@/components/simulation-overview"
 import { initializeSimulation } from "@/lib/simulation-utils"
 import type { Task, VM, WorkflowSimulationRef } from "@/types/simulation"
-import { updateTaskStatus, forceCompleteAllTasks, calculateProgressAndCosts } from "@/lib/animation-utils"
+import { updateTaskStatus, calculateProgressAndCosts } from "@/lib/animation-utils"
 import TaskDetailsTab from "@/components/task-details-tab"
 import AllocationTab from "@/components/allocation-tab"
 import OverviewTab from "@/components/overview-tab"
+import { workflowData } from "@/lib/workflow-data" // Import workflowData directly
 
 const WorkflowSimulation = forwardRef<
   WorkflowSimulationRef,
@@ -141,14 +142,7 @@ const WorkflowSimulation = forwardRef<
       setSimulationCompleted(false)
 
       // Set deadline based on workflow type and factor
-      const workflowData = {
-        sample: { maxRank: 32 },
-        montage: { maxRank: 369 },
-        cybershake: { maxRank: 736 },
-        ligo: { maxRank: 625 },
-        epigenomics: { maxRank: 27232 },
-      }
-
+      // Use the imported workflowData instead of requiring it
       const baseMaxRank = workflowData[workflowType]?.maxRank || 32
       setDeadline(baseMaxRank * deadlineFactor)
 
@@ -230,23 +224,6 @@ const WorkflowSimulation = forwardRef<
         workflowType,
       )
 
-      // Force-complete all tasks if simulation time is past a certain threshold
-      // This is a fallback to ensure the simulation completes even if there are issues with dependency resolution
-      const maxSimTime = deadline * 1.5 // Use 1.5x the deadline as a maximum simulation time
-      if (elapsedTimeRef.current > maxSimTime) {
-        forceCompleteAllTasks(
-          dsawsTasksRef,
-          cgaTasksRef,
-          dynaTasksRef,
-          setDsawsTasks,
-          setCgaTasks,
-          setDynaTasks,
-          setDsawsProgress,
-          setCgaProgress,
-          setDynaProgress,
-        )
-      }
-
       // Calculate progress and costs
       const {
         dsawsProgress: newDsawsProgress,
@@ -290,7 +267,12 @@ const WorkflowSimulation = forwardRef<
       // Continue animation if not complete or force stop if all tasks are done
       const allTasksCompleted = dsawsAllCompleted && cgaAllCompleted && dynaAllCompleted
 
-      if (!allTasksCompleted) {
+      // Check if we've reached the maximum simulation time
+      const maxSimTimeMultiplier = workflowType === "epigenomics" ? 3.0 : 1.5
+      const maxSimTime = deadline * maxSimTimeMultiplier
+      const timeExceeded = elapsedTimeRef.current > maxSimTime
+
+      if (!allTasksCompleted && !timeExceeded) {
         animationRef.current = requestAnimationFrame(animationFrame)
       } else {
         // Mark simulation as completed

@@ -328,7 +328,7 @@ export default function WorkflowDiagram({ workflowType }: WorkflowDiagramProps) 
               </text>
 
               {/* Color indicator */}
-              <circle cx="20" y={70 + level * levelHeight} r="6" fill={levelColors[level % levelColors.length]} />
+              <circle cx="20" cy={70 + level * levelHeight} r="6" fill={levelColors[level % levelColors.length]} />
             </g>
           ))}
         </svg>

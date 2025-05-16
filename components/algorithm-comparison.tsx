@@ -1,10 +1,19 @@
 "use client"
 
-import { Tooltip } from "@/components/ui/tooltip"
-
 import { Card, CardContent } from "@/components/ui/card"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Legend, ResponsiveContainer, LineChart, Line } from "recharts"
+import {
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Legend,
+  ResponsiveContainer,
+  LineChart,
+  Line,
+  Tooltip as RechartsTooltip,
+} from "recharts"
 import type { SimulationResult } from "@/context/simulation-context"
 import { algorithmData, algorithmDescriptions } from "@/lib/algorithm-data"
 
@@ -50,9 +59,9 @@ export default function AlgorithmComparison({
                       label={{ value: "Success Rate (%)", angle: -90, position: "insideLeft", offset: -5 }}
                       domain={[0, 120]}
                     />
-                    <Tooltip
-                      formatter={(value) => [`${value}%`, "Success Rate"]}
-                      labelFormatter={(label) => `Deadline Factor: ${label}`}
+                    <RechartsTooltip
+                      formatter={(value: any) => [`${value}%`, "Success Rate"]}
+                      labelFormatter={(label: any) => `Deadline Factor: ${label}`}
                     />
                     <Legend verticalAlign="top" height={36} />
                     <Bar dataKey="DSAWS" name="DSAWS" fill="#f97316" barSize={30} />
@@ -79,9 +88,9 @@ export default function AlgorithmComparison({
                       label={{ value: "Deadline Factor", position: "insideBottom", offset: -10 }}
                     />
                     <YAxis label={{ value: "Execution Cost ($)", angle: -90, position: "insideLeft", offset: -5 }} />
-                    <Tooltip
-                      formatter={(value) => [`$${value}`, "Cost"]}
-                      labelFormatter={(label) => `Deadline Factor: ${label}`}
+                    <RechartsTooltip
+                      formatter={(value: any) => [`$${value}`, "Cost"]}
+                      labelFormatter={(label: any) => `Deadline Factor: ${label}`}
                     />
                     <Legend verticalAlign="top" height={36} />
                     <Bar dataKey="DSAWS" name="DSAWS" fill="#f97316" barSize={30} />
@@ -108,7 +117,10 @@ export default function AlgorithmComparison({
                       label={{ value: "Simulation Time (seconds)", position: "insideBottom", offset: -10 }}
                     />
                     <YAxis label={{ value: "Number of VMs", angle: -90, position: "insideLeft", offset: -5 }} />
-                    <Tooltip formatter={(value) => [value, "VMs"]} labelFormatter={(label) => `Time: ${label}s`} />
+                    <RechartsTooltip
+                      formatter={(value: any) => [value, "VMs"]}
+                      labelFormatter={(label: any) => `Time: ${label}s`}
+                    />
                     <Legend verticalAlign="top" height={36} />
                     <Line type="monotone" dataKey="DSAWS" name="DSAWS" stroke="#f97316" strokeWidth={2} />
                     <Line type="monotone" dataKey="CGA" name="CGA" stroke="#10b981" strokeWidth={2} />

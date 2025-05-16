@@ -137,14 +137,11 @@ export const calculateProgressAndCosts = (
   const dynaCostValue = calculateCost(dynaVMsRef.current, elapsedTimeRef.current)
 
   return {
-    dsawsProgress: dsawsCompletedTasks === dsawsTasksRef.current.length ? 100 : dsawsProgressPercent,
-    cgaProgress: cgaCompletedTasks === cgaTasksRef.current.length ? 100 : cgaProgressPercent,
-    dynaProgress: dynaCompletedTasks === dynaTasksRef.current.length ? 100 : dynaProgressPercent,
+    dsawsProgress: dsawsProgressPercent,
+    cgaProgress: cgaProgressPercent,
+    dynaProgress: dynaProgressPercent,
     dsawsCost: dsawsCostValue,
     cgaCost: cgaCostValue,
     dynaCost: dynaCostValue,
-    dsawsAllCompleted: dsawsCompletedTasks === dsawsTasksRef.current.length && dsawsTasksRef.current.length > 0,
-    cgaAllCompleted: cgaCompletedTasks === cgaTasksRef.current.length && cgaTasksRef.current.length > 0,
-    dynaAllCompleted: dynaCompletedTasks === dynaTasksRef.current.length && dynaTasksRef.current.length > 0,
   }
 }

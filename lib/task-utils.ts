@@ -12,6 +12,10 @@ export const generateTasks = (count: number, vms: VM[], workflowType = "sample",
   const levels = Math.min(workflow.levels, Math.ceil(Math.sqrt(count / 10)))
   const tasksPerLevel = Math.ceil(count / levels)
 
+  // Runtime scaling factor to make tasks run longer
+  // Dramatically increased to make tasks run much longer
+  const runtimeScalingFactor = workflowType === "sample" ? 1.0 : 30.0
+
   // Runtime variation factors based on workflow type
   const runtimeVariationFactors = {
     montage: { min: 0.5, max: 2.0 }, // Moderate variation
@@ -64,18 +68,21 @@ export const generateTasks = (count: number, vms: VM[], workflowType = "sample",
       // Add variation within the level
       const variationMultiplier = variationFactor.min + Math.random() * (variationFactor.max - variationFactor.min)
 
-      // Calculate final runtime with algorithm efficiency factor
-      let runtime = Math.max(1, Math.round(meanRuntime * levelMultiplier * variationMultiplier * efficiencyFactor))
+      // Calculate final runtime with algorithm efficiency factor and scaling factor
+      let runtime = Math.max(
+        1,
+        Math.round(meanRuntime * levelMultiplier * variationMultiplier * efficiencyFactor * runtimeScalingFactor),
+      )
 
       // For epigenomics, level 5 has extremely long runtimes
       if (workflowType === "epigenomics" && level === 5) {
-        runtime = Math.max(runtime, Math.round(meanRuntime * 5 * efficiencyFactor))
+        runtime = Math.max(runtime, Math.round(meanRuntime * 5 * efficiencyFactor * runtimeScalingFactor))
       }
 
       // Calculate rank based on runtime and level
       // Higher levels and longer runtimes = higher rank
       const rankFactor = (levels - level + 1) / levels // Higher levels have lower rank factor
-      const rank = Math.round(maxRank * rankFactor * (runtime / meanRuntime) * 0.8)
+      const rank = Math.round(maxRank * rankFactor * (runtime / (meanRuntime * runtimeScalingFactor)) * 0.8)
 
       // Find VM assignment
       const vmIndex = taskId % vms.length
@@ -83,15 +90,15 @@ export const generateTasks = (count: number, vms: VM[], workflowType = "sample",
 
       // Calculate start and end times based on algorithm
       // Different algorithms have different scheduling strategies
-      let startTime = level * 5 // Simple estimate
+      let startTime = level * 5 * runtimeScalingFactor // Scale the start time too
 
       // Adjust start times based on algorithm
       if (algorithm === "CGA") {
         // CGA tends to have more gaps between tasks
-        startTime = level * 6
+        startTime = level * 6 * runtimeScalingFactor
       } else if (algorithm === "Dyna") {
         // Dyna has a different scheduling pattern
-        startTime = level * 5.5
+        startTime = level * 5.5 * runtimeScalingFactor
       }
 
       const endTime = startTime + runtime

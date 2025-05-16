@@ -1,7 +1,6 @@
 "use client"
 
 import { Badge } from "@/components/ui/badge"
-import { Progress } from "@/components/ui/progress"
 import { Server, DollarSign } from "lucide-react"
 import type { VM } from "@/types/simulation"
 import { CustomBadge } from "@/components/ui/custom-badge"
@@ -102,12 +101,11 @@ export default function SimulationVMDetails({
 
   return (
     <div className="space-y-2">
-      <div className="flex items-center justify-between">
+      <div className="flex items-center justify-between mb-4">
         <div className="flex items-center space-x-2">
           <Badge variant="outline" className={getBgColor()}>
             {algorithm}
           </Badge>
-          <span className="text-sm">{progress.toFixed(2)}% Complete</span>
         </div>
         <div className="flex items-center space-x-4">
           <div className="flex items-center space-x-1">
@@ -123,7 +121,6 @@ export default function SimulationVMDetails({
           </CustomBadge>
         </div>
       </div>
-      <Progress value={progress} className="h-2" />
 
       {/* VM Details Section */}
       <div className="mt-4">

@@ -1,9 +1,10 @@
 "use client"
 
+import { Tooltip } from "@/components/ui/tooltip"
+
 import { Card, CardContent } from "@/components/ui/card"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Legend, ResponsiveContainer, LineChart, Line } from "recharts"
-import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart"
 import type { SimulationResult } from "@/context/simulation-context"
 import { algorithmData, algorithmDescriptions } from "@/lib/algorithm-data"
 
@@ -37,39 +38,29 @@ export default function AlgorithmComparison({
 
             <TabsContent value="success" className="pt-4">
               <h3 className="text-lg font-medium mb-4">Deadline Success Rate (%)</h3>
-              <ChartContainer
-                config={{
-                  DSAWS: {
-                    label: "DSAWS",
-                    color: "hsl(var(--chart-1))",
-                  },
-                  CGA: {
-                    label: "CGA",
-                    color: "hsl(var(--chart-2))",
-                  },
-                  Dyna: {
-                    label: "Dyna",
-                    color: "hsl(var(--chart-3))",
-                  },
-                }}
-                className="h-[400px]"
-              >
+              <div className="h-[400px] w-full">
                 <ResponsiveContainer width="100%" height="100%">
-                  <BarChart data={processedData.deadlineSuccess}>
+                  <BarChart data={processedData.deadlineSuccess} margin={{ top: 20, right: 30, left: 20, bottom: 30 }}>
                     <CartesianGrid strokeDasharray="3 3" />
                     <XAxis
                       dataKey="factor"
-                      label={{ value: "Deadline Factor", position: "insideBottom", offset: -5 }}
+                      label={{ value: "Deadline Factor", position: "insideBottom", offset: -10 }}
                     />
-                    <YAxis label={{ value: "Success Rate (%)", angle: -90, position: "insideLeft" }} />
-                    <ChartTooltip content={<ChartTooltipContent />} />
-                    <Legend />
-                    <Bar dataKey="DSAWS" name="DSAWS" fill="var(--color-DSAWS)" />
-                    <Bar dataKey="CGA" name="CGA" fill="var(--color-CGA)" />
-                    <Bar dataKey="Dyna" name="Dyna" fill="var(--color-Dyna)" />
+                    <YAxis
+                      label={{ value: "Success Rate (%)", angle: -90, position: "insideLeft", offset: -5 }}
+                      domain={[0, 120]}
+                    />
+                    <Tooltip
+                      formatter={(value) => [`${value}%`, "Success Rate"]}
+                      labelFormatter={(label) => `Deadline Factor: ${label}`}
+                    />
+                    <Legend verticalAlign="top" height={36} />
+                    <Bar dataKey="DSAWS" name="DSAWS" fill="#f97316" barSize={30} />
+                    <Bar dataKey="CGA" name="CGA" fill="#10b981" barSize={30} />
+                    <Bar dataKey="Dyna" name="Dyna" fill="#3b82f6" barSize={30} />
                   </BarChart>
                 </ResponsiveContainer>
-              </ChartContainer>
+              </div>
               <p className="text-sm text-muted-foreground mt-4">
                 {hasResults
                   ? "This chart shows the actual deadline success rates from your simulations."
@@ -79,39 +70,26 @@ export default function AlgorithmComparison({
 
             <TabsContent value="cost" className="pt-4">
               <h3 className="text-lg font-medium mb-4">Execution Cost ($)</h3>
-              <ChartContainer
-                config={{
-                  DSAWS: {
-                    label: "DSAWS",
-                    color: "hsl(var(--chart-1))",
-                  },
-                  CGA: {
-                    label: "CGA",
-                    color: "hsl(var(--chart-2))",
-                  },
-                  Dyna: {
-                    label: "Dyna",
-                    color: "hsl(var(--chart-3))",
-                  },
-                }}
-                className="h-[400px]"
-              >
+              <div className="h-[400px] w-full">
                 <ResponsiveContainer width="100%" height="100%">
-                  <BarChart data={processedData.executionCost}>
+                  <BarChart data={processedData.executionCost} margin={{ top: 20, right: 30, left: 20, bottom: 30 }}>
                     <CartesianGrid strokeDasharray="3 3" />
                     <XAxis
                       dataKey="factor"
-                      label={{ value: "Deadline Factor", position: "insideBottom", offset: -5 }}
+                      label={{ value: "Deadline Factor", position: "insideBottom", offset: -10 }}
                     />
-                    <YAxis label={{ value: "Execution Cost ($)", angle: -90, position: "insideLeft" }} />
-                    <ChartTooltip content={<ChartTooltipContent />} />
-                    <Legend />
-                    <Bar dataKey="DSAWS" name="DSAWS" fill="var(--color-DSAWS)" />
-                    <Bar dataKey="CGA" name="CGA" fill="var(--color-CGA)" />
-                    <Bar dataKey="Dyna" name="Dyna" fill="var(--color-Dyna)" />
+                    <YAxis label={{ value: "Execution Cost ($)", angle: -90, position: "insideLeft", offset: -5 }} />
+                    <Tooltip
+                      formatter={(value) => [`$${value}`, "Cost"]}
+                      labelFormatter={(label) => `Deadline Factor: ${label}`}
+                    />
+                    <Legend verticalAlign="top" height={36} />
+                    <Bar dataKey="DSAWS" name="DSAWS" fill="#f97316" barSize={30} />
+                    <Bar dataKey="CGA" name="CGA" fill="#10b981" barSize={30} />
+                    <Bar dataKey="Dyna" name="Dyna" fill="#3b82f6" barSize={30} />
                   </BarChart>
                 </ResponsiveContainer>
-              </ChartContainer>
+              </div>
               <p className="text-sm text-muted-foreground mt-4">
                 {hasResults
                   ? "This chart shows the actual execution costs from your simulations."
@@ -121,39 +99,23 @@ export default function AlgorithmComparison({
 
             <TabsContent value="vms" className="pt-4">
               <h3 className="text-lg font-medium mb-4">VM Utilization Over Time</h3>
-              <ChartContainer
-                config={{
-                  DSAWS: {
-                    label: "DSAWS",
-                    color: "hsl(var(--chart-1))",
-                  },
-                  CGA: {
-                    label: "CGA",
-                    color: "hsl(var(--chart-2))",
-                  },
-                  Dyna: {
-                    label: "Dyna",
-                    color: "hsl(var(--chart-3))",
-                  },
-                }}
-                className="h-[400px]"
-              >
+              <div className="h-[400px] w-full">
                 <ResponsiveContainer width="100%" height="100%">
-                  <LineChart data={processedData.vmUtilization}>
+                  <LineChart data={processedData.vmUtilization} margin={{ top: 20, right: 30, left: 20, bottom: 30 }}>
                     <CartesianGrid strokeDasharray="3 3" />
                     <XAxis
                       dataKey="time"
-                      label={{ value: "Simulation Time (seconds)", position: "insideBottom", offset: -5 }}
+                      label={{ value: "Simulation Time (seconds)", position: "insideBottom", offset: -10 }}
                     />
-                    <YAxis label={{ value: "Number of VMs", angle: -90, position: "insideLeft" }} />
-                    <ChartTooltip content={<ChartTooltipContent />} />
-                    <Legend />
-                    <Line type="monotone" dataKey="DSAWS" name="DSAWS" stroke="var(--color-DSAWS)" strokeWidth={2} />
-                    <Line type="monotone" dataKey="CGA" name="CGA" stroke="var(--color-CGA)" strokeWidth={2} />
-                    <Line type="monotone" dataKey="Dyna" name="Dyna" stroke="var(--color-Dyna)" strokeWidth={2} />
+                    <YAxis label={{ value: "Number of VMs", angle: -90, position: "insideLeft", offset: -5 }} />
+                    <Tooltip formatter={(value) => [value, "VMs"]} labelFormatter={(label) => `Time: ${label}s`} />
+                    <Legend verticalAlign="top" height={36} />
+                    <Line type="monotone" dataKey="DSAWS" name="DSAWS" stroke="#f97316" strokeWidth={2} />
+                    <Line type="monotone" dataKey="CGA" name="CGA" stroke="#10b981" strokeWidth={2} />
+                    <Line type="monotone" dataKey="Dyna" name="Dyna" stroke="#3b82f6" strokeWidth={2} />
                   </LineChart>
                 </ResponsiveContainer>
-              </ChartContainer>
+              </div>
               <p className="text-sm text-muted-foreground mt-4">
                 {hasResults
                   ? "This chart shows the actual VM utilization over time from your simulations."

@@ -101,7 +101,7 @@ export default function SimulationTab() {
                 </Select>
               </div>
 
-              <div>
+              {selectedWorkflow !== "sample" && <div>
                 <div className="flex items-center space-x-2">
                   <label className="text-sm font-medium">Number of Tasks</label>
                   <TooltipProvider delayDuration={0}>
@@ -164,9 +164,9 @@ export default function SimulationTab() {
                     </DropdownMenu>
                   </div>
                 </div>
-              </div>
+              </div>}
 
-              <div>
+              {selectedWorkflow === "sample" && <div>
                 <div className="flex items-center space-x-2">
                   <label className="text-sm font-medium">Max Simulation Time (seconds)</label>
                   <TooltipProvider delayDuration={0}>
@@ -206,7 +206,7 @@ export default function SimulationTab() {
                     disabled={selectedWorkflow === "sample"}
                   />
                 </div>
-              </div>
+              </div>}
 
               <div>
                 <label className="text-sm font-medium">Deadline Factor</label>

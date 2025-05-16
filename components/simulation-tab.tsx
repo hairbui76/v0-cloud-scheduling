@@ -137,8 +137,8 @@ export default function SimulationTab() {
                           </TooltipTrigger>
                           <TooltipContent side="right" sideOffset={5} className="max-w-xs">
                             <p>
-                              For the sample workflow from the paper, this is fixed at 9 tasks with predefined
-                              runtimes and dependencies.
+                              For the sample workflow from the paper, this is fixed at 9 tasks with predefined runtimes
+                              and dependencies.
                             </p>
                           </TooltipContent>
                         </Tooltip>

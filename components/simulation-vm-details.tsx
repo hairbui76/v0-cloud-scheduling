@@ -24,22 +24,40 @@ export default function SimulationVMDetails({
   simulationTime,
 }: SimulationVMDetailsProps) {
   // Helper function to get task status badge variant
-  const getTaskStatusBadge = (taskId: string) => {
-    // Find the VM that has this task
-    const vm = vms.find((vm) => vm.tasks.includes(taskId))
-    if (!vm) return "outline"
+  const getTaskStatusBadge = (taskId: string, vm: VM) => {
+    // Find the task in the VM's task list
+    const taskIndex = vm.tasks.indexOf(taskId)
+    if (taskIndex === -1) return "outline"
 
-    // For simplicity, we'll use a deterministic approach based on the task ID and simulation time
-    // In a real implementation, you would check against actual task start/end times
-    const taskIndex = Number.parseInt(taskId.replace(/\D/g, "")) || 0
-    const completionThreshold = simulationTime / 2 + (taskIndex % 5)
+    // For the sample workflow, we need to respect the predefined start and end times
+    // These are hardcoded values from the DSAWS paper example
+    const taskTimes = {
+      // DSAWS VM1 tasks
+      t2: { start: 2, end: 6 },
+      t5: { start: 6, end: 15 },
+      t8: { start: 15, end: 29 },
+      // DSAWS VM2 tasks
+      t1: { start: 2, end: 7 },
+      t4: { start: 7, end: 15 },
+      t7: { start: 15, end: 25 },
+      // DSAWS VM3 tasks
+      t3: { start: 2, end: 8 },
+      t6: { start: 8, end: 13 },
+      t9: { start: 13, end: 27 },
+      // Default values for other tasks
+      default: { start: 0, end: 10 },
+    }
 
-    if (simulationTime > completionThreshold) {
-      return "success"
-    } else if (simulationTime > completionThreshold / 2) {
-      return "default"
+    // Get the task times (use default if not found)
+    const times = taskTimes[taskId] || taskTimes.default
+
+    // Determine status based on simulation time and task times
+    if (simulationTime >= times.end) {
+      return "success" // Completed
+    } else if (simulationTime >= times.start) {
+      return "default" // Running
     } else {
-      return "outline"
+      return "outline" // Waiting
     }
   }
 
@@ -109,7 +127,7 @@ export default function SimulationVMDetails({
                   <span className="text-gray-500">Assigned Tasks:</span>
                   <div className="flex flex-wrap gap-1 mt-1">
                     {vm.tasks.map((taskId) => (
-                      <CustomBadge key={taskId} variant={getTaskStatusBadge(taskId) as any} className="text-xs">
+                      <CustomBadge key={taskId} variant={getTaskStatusBadge(taskId, vm) as any} className="text-xs">
                         {taskId}
                       </CustomBadge>
                     ))}

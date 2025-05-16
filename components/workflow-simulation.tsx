@@ -7,21 +7,15 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { useSimulation } from "@/context/simulation-context"
 import { FastForward } from "lucide-react"
 
-// Import the SVG-based components
+// Import components
 import WorkflowDiagram from "@/components/workflow-diagram"
-import TaskAllocationVisualization from "@/components/task-allocation-visualization"
-import AllocationComparison from "@/components/allocation-comparison"
 import SimulationOverview from "@/components/simulation-overview"
-import SimulationVMDetails from "@/components/simulation-vm-details"
-import { initializeSimulation, calculateCost } from "@/lib/simulation-utils"
-import type { Task, VM } from "@/types/simulation"
-// Import the CustomBadge component
-import { CustomBadge } from "@/components/ui/custom-badge"
-
-// Define a ref type for the component
-export type WorkflowSimulationRef = {
-  resetSimulation: () => void
-}
+import { initializeSimulation } from "@/lib/simulation-utils"
+import type { Task, VM, WorkflowSimulationRef } from "@/types/simulation"
+import { updateTaskStatus, forceCompleteAllTasks, calculateProgressAndCosts } from "@/lib/animation-utils"
+import TaskDetailsTab from "@/components/task-details-tab"
+import AllocationTab from "@/components/allocation-tab"
+import OverviewTab from "@/components/overview-tab"
 
 const WorkflowSimulation = forwardRef<
   WorkflowSimulationRef,
@@ -225,46 +219,62 @@ const WorkflowSimulation = forwardRef<
 
       // Update task completion status based on current time
       // Use the refs to avoid triggering re-renders during animation
-      updateTaskStatus(elapsedTimeRef.current)
+      updateTaskStatus(
+        elapsedTimeRef.current,
+        dsawsTasksRef,
+        cgaTasksRef,
+        dynaTasksRef,
+        dsawsVMsRef,
+        cgaVMsRef,
+        dynaVMsRef,
+        workflowType,
+      )
 
       // Force-complete all tasks if simulation time is past a certain threshold
       // This is a fallback to ensure the simulation completes even if there are issues with dependency resolution
       const maxSimTime = deadline * 1.5 // Use 1.5x the deadline as a maximum simulation time
       if (elapsedTimeRef.current > maxSimTime) {
-        forceCompleteAllTasks()
+        forceCompleteAllTasks(
+          dsawsTasksRef,
+          cgaTasksRef,
+          dynaTasksRef,
+          setDsawsTasks,
+          setCgaTasks,
+          setDynaTasks,
+          setDsawsProgress,
+          setCgaProgress,
+          setDynaProgress,
+        )
       }
 
-      // Calculate progress based on completed tasks
-      const dsawsCompletedTasks = dsawsTasksRef.current.filter((task) => task.completed).length
-      const dsawsProgressPercent =
-        dsawsTasksRef.current.length > 0 ? (dsawsCompletedTasks / dsawsTasksRef.current.length) * 100 : 100
-
-      const cgaCompletedTasks = cgaTasksRef.current.filter((task) => task.completed).length
-      const cgaProgressPercent =
-        cgaTasksRef.current.length > 0 ? (cgaCompletedTasks / cgaTasksRef.current.length) * 100 : 100
-
-      const dynaCompletedTasks = dynaTasksRef.current.filter((task) => task.completed).length
-      const dynaProgressPercent =
-        dynaTasksRef.current.length > 0 ? (dynaCompletedTasks / dynaTasksRef.current.length) * 100 : 100
-
-      // Calculate costs
-      const dsawsCostValue = calculateCost(dsawsVMsRef.current, elapsedTimeRef.current)
-      const cgaCostValue = calculateCost(cgaVMsRef.current, elapsedTimeRef.current)
-      const dynaCostValue = calculateCost(dynaVMsRef.current, elapsedTimeRef.current)
+      // Calculate progress and costs
+      const {
+        dsawsProgress: newDsawsProgress,
+        cgaProgress: newCgaProgress,
+        dynaProgress: newDynaProgress,
+        dsawsCost: newDsawsCost,
+        cgaCost: newCgaCost,
+        dynaCost: newDynaCost,
+        dsawsAllCompleted,
+        cgaAllCompleted,
+        dynaAllCompleted,
+      } = calculateProgressAndCosts(
+        dsawsTasksRef,
+        cgaTasksRef,
+        dynaTasksRef,
+        dsawsVMsRef,
+        cgaVMsRef,
+        dynaVMsRef,
+        elapsedTimeRef,
+      )
 
       // Batch state updates to reduce re-renders
-      // We'll update the state only once per animation frame
-      setDsawsProgress(dsawsCompletedTasks === dsawsTasksRef.current.length ? 100 : dsawsProgressPercent)
-      setCgaProgress(cgaCompletedTasks === cgaTasksRef.current.length ? 100 : cgaProgressPercent)
-      setDynaProgress(dynaCompletedTasks === dynaTasksRef.current.length ? 100 : dynaProgressPercent)
-      setDsawsCost(dsawsCostValue)
-      setCgaCost(cgaCostValue)
-      setDynaCost(dynaCostValue)
-
-      // Check if all tasks are completed for each algorithm
-      const dsawsAllCompleted = dsawsCompletedTasks === dsawsTasksRef.current.length && dsawsTasksRef.current.length > 0
-      const cgaAllCompleted = cgaCompletedTasks === cgaTasksRef.current.length && cgaTasksRef.current.length > 0
-      const dynaAllCompleted = dynaCompletedTasks === dynaTasksRef.current.length && dynaTasksRef.current.length > 0
+      setDsawsProgress(newDsawsProgress)
+      setCgaProgress(newCgaProgress)
+      setDynaProgress(newDynaProgress)
+      setDsawsCost(newDsawsCost)
+      setCgaCost(newCgaCost)
+      setDynaCost(newDynaCost)
 
       // Update deadline meeting status
       if (dsawsAllCompleted) {
@@ -295,144 +305,6 @@ const WorkflowSimulation = forwardRef<
         }
 
         // Update the UI with the final state
-        setDsawsTasks([...dsawsTasksRef.current])
-        setCgaTasks([...cgaTasksRef.current])
-        setDynaTasks([...dynaTasksRef.current])
-        setDsawsVMs([...dsawsVMsRef.current])
-        setCgaVMs([...cgaVMsRef.current])
-        setDynaVMs([...dynaVMsRef.current])
-      }
-    }
-
-    // Force complete all tasks - used as a fallback
-    const forceCompleteAllTasks = () => {
-      // Update refs first
-      dsawsTasksRef.current = dsawsTasksRef.current.map((task) => ({ ...task, completed: true }))
-      cgaTasksRef.current = cgaTasksRef.current.map((task) => ({ ...task, completed: true }))
-      dynaTasksRef.current = dynaTasksRef.current.map((task) => ({ ...task, completed: true }))
-
-      // Then update state (this will be batched)
-      setDsawsTasks([...dsawsTasksRef.current])
-      setCgaTasks([...cgaTasksRef.current])
-      setDynaTasks([...dynaTasksRef.current])
-
-      // Set progress to 100%
-      setDsawsProgress(100)
-      setCgaProgress(100)
-      setDynaProgress(100)
-    }
-
-    const updateTaskStatus = (currentTime: number) => {
-      // For the sample workflow, we'll use a simplified approach
-      if (workflowType === "sample") {
-        // Mark tasks as completed based on their end time
-        dsawsTasksRef.current = dsawsTasksRef.current.map((task) => {
-          if (!task.completed && currentTime >= (task.endTime || 0)) {
-            return { ...task, completed: true }
-          }
-          return task
-        })
-
-        cgaTasksRef.current = cgaTasksRef.current.map((task) => {
-          if (!task.completed && currentTime >= (task.endTime || 0)) {
-            return { ...task, completed: true }
-          }
-          return task
-        })
-
-        dynaTasksRef.current = dynaTasksRef.current.map((task) => {
-          if (!task.completed && currentTime >= (task.endTime || 0)) {
-            return { ...task, completed: true }
-          }
-          return task
-        })
-      } else {
-        // For other workflows, use the dependency-based approach
-        // First pass: Mark tasks as completed if time has passed and dependencies are completed
-        dsawsTasksRef.current = dsawsTasksRef.current.map((task) => {
-          // Only process tasks that aren't already completed
-          if (!task.completed) {
-            // Check if all dependencies are completed
-            const dependenciesCompleted = task.dependencies.every((depId) => {
-              const depTask = dsawsTasksRef.current.find((t) => t.id === depId)
-              return depTask?.completed === true
-            })
-
-            // Mark as completed if time has passed AND all dependencies are completed
-            if (currentTime >= (task.endTime || Number.POSITIVE_INFINITY) && dependenciesCompleted) {
-              return { ...task, completed: true }
-            }
-          }
-          return task
-        })
-
-        // Update CGA tasks with the same logic
-        cgaTasksRef.current = cgaTasksRef.current.map((task) => {
-          if (!task.completed) {
-            const dependenciesCompleted = task.dependencies.every((depId) => {
-              const depTask = cgaTasksRef.current.find((t) => t.id === depId)
-              return depTask?.completed === true
-            })
-
-            if (currentTime >= (task.endTime || Number.POSITIVE_INFINITY) && dependenciesCompleted) {
-              return { ...task, completed: true }
-            }
-          }
-          return task
-        })
-
-        // Update Dyna tasks with the same logic
-        dynaTasksRef.current = dynaTasksRef.current.map((task) => {
-          if (!task.completed) {
-            const dependenciesCompleted = task.dependencies.every((depId) => {
-              const depTask = dynaTasksRef.current.find((t) => t.id === depId)
-              return depTask?.completed === true
-            })
-
-            if (currentTime >= (task.endTime || Number.POSITIVE_INFINITY) && dependenciesCompleted) {
-              return { ...task, completed: true }
-            }
-          }
-          return task
-        })
-      }
-
-      // Update VM current times
-      dsawsVMsRef.current = dsawsVMsRef.current.map((vm) => {
-        // Find the latest task end time for this VM
-        const vmTasks = dsawsTasksRef.current.filter((task) => task.assignedVM === vm.id)
-        const latestEndTime = Math.max(...vmTasks.map((task) => task.endTime || 0), vm.currentTime)
-
-        return {
-          ...vm,
-          currentTime: Math.min(currentTime, latestEndTime),
-        }
-      })
-
-      // Update CGA VMs
-      cgaVMsRef.current = cgaVMsRef.current.map((vm) => {
-        const vmTasks = cgaTasksRef.current.filter((task) => task.assignedVM === vm.id)
-        const latestEndTime = Math.max(...vmTasks.map((task) => task.endTime || 0), vm.currentTime)
-        return {
-          ...vm,
-          currentTime: Math.min(currentTime, latestEndTime),
-        }
-      })
-
-      // Update Dyna VMs
-      dynaVMsRef.current = dynaVMsRef.current.map((vm) => {
-        const vmTasks = dynaTasksRef.current.filter((task) => task.assignedVM === vm.id)
-        const latestEndTime = Math.max(...vmTasks.map((task) => task.endTime || 0), vm.currentTime)
-        return {
-          ...vm,
-          currentTime: Math.min(currentTime, latestEndTime),
-        }
-      })
-
-      // Update the state more frequently to keep the UI in sync
-      // This ensures task status is displayed correctly
-      if (Math.floor(currentTime * 10) % 5 === 0) {
-        // Update every 0.5 seconds of simulation time
         setDsawsTasks([...dsawsTasksRef.current])
         setCgaTasks([...cgaTasksRef.current])
         setDynaTasks([...dynaTasksRef.current])
@@ -524,17 +396,6 @@ const WorkflowSimulation = forwardRef<
       }
     }
 
-    // Helper function to determine task status for the task details table
-    const getTaskStatus = (task: Task) => {
-      if (task.completed) {
-        return "completed"
-      } else if (simulationTime >= (task.startTime || 0)) {
-        return "running"
-      } else {
-        return "waiting"
-      }
-    }
-
     return (
       <div className="space-y-6">
         <Card>
@@ -564,122 +425,34 @@ const WorkflowSimulation = forwardRef<
               <TabsList className="grid w-full grid-cols-4">
                 <TabsTrigger value="overview">Overview</TabsTrigger>
                 <TabsTrigger value="tasks">Task Details</TabsTrigger>
-                {/* <TabsTrigger value="timeline">Timeline</TabsTrigger> */}
                 <TabsTrigger value="diagram">Workflow Diagram</TabsTrigger>
                 <TabsTrigger value="allocation">VM Allocation</TabsTrigger>
               </TabsList>
 
               <TabsContent value="overview">
-                <div className="space-y-6">
-                  {showDSAWS && (
-                    <SimulationVMDetails
-                      algorithm="DSAWS"
-                      progress={dsawsProgress}
-                      vms={dsawsVMs}
-                      cost={dsawsCost}
-                      meetsDeadline={dsawsMeetsDeadline}
-                      simulationTime={simulationTime}
-                    />
-                  )}
-
-                  {showCGA && (
-                    <SimulationVMDetails
-                      algorithm="CGA"
-                      progress={cgaProgress}
-                      vms={cgaVMs}
-                      cost={cgaCost}
-                      meetsDeadline={cgaMeetsDeadline}
-                      simulationTime={simulationTime}
-                    />
-                  )}
-
-                  {showDyna && (
-                    <SimulationVMDetails
-                      algorithm="Dyna"
-                      progress={dynaProgress}
-                      vms={dynaVMs}
-                      cost={dynaCost}
-                      meetsDeadline={dynaMeetsDeadline}
-                      simulationTime={simulationTime}
-                    />
-                  )}
-                </div>
+                <OverviewTab
+                  showDSAWS={showDSAWS}
+                  showCGA={showCGA}
+                  showDyna={showDyna}
+                  dsawsProgress={dsawsProgress}
+                  cgaProgress={cgaProgress}
+                  dynaProgress={dynaProgress}
+                  dsawsVMs={dsawsVMs}
+                  cgaVMs={cgaVMs}
+                  dynaVMs={dynaVMs}
+                  dsawsCost={dsawsCost}
+                  cgaCost={cgaCost}
+                  dynaCost={dynaCost}
+                  dsawsMeetsDeadline={dsawsMeetsDeadline}
+                  cgaMeetsDeadline={cgaMeetsDeadline}
+                  dynaMeetsDeadline={dynaMeetsDeadline}
+                  simulationTime={simulationTime}
+                />
               </TabsContent>
 
               <TabsContent value="tasks">
-                <div className="space-y-4">
-                  <h3 className="text-lg font-medium">DSAWS Task Details</h3>
-                  <div className="overflow-x-auto">
-                    <table className="min-w-full divide-y divide-gray-200">
-                      <thead className="bg-gray-50">
-                        <tr>
-                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                            Task
-                          </th>
-                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                            Rank
-                          </th>
-                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                            Runtime
-                          </th>
-                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                            VM
-                          </th>
-                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                            Start
-                          </th>
-                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                            End
-                          </th>
-                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                            Status
-                          </th>
-                        </tr>
-                      </thead>
-                      <tbody className="bg-white divide-y divide-gray-200">
-                        {dsawsTasks
-                          .sort((a, b) => b.rank - a.rank) // Sort by rank (highest first)
-                          .map((task) => {
-                            const status = getTaskStatus(task)
-                            return (
-                              <tr key={task.id}>
-                                <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                                  {task.id}
-                                </td>
-                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{task.rank}</td>
-                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{task.runtime}s</td>
-                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{task.assignedVM}</td>
-                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{task.startTime}s</td>
-                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{task.endTime}s</td>
-                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                                  {status === "completed" ? (
-                                    <CustomBadge variant="success">Completed</CustomBadge>
-                                  ) : status === "running" ? (
-                                    <CustomBadge variant="default">Running</CustomBadge>
-                                  ) : (
-                                    <CustomBadge variant="outline">Waiting</CustomBadge>
-                                  )}
-                                </td>
-                              </tr>
-                            )
-                          })}
-                      </tbody>
-                    </table>
-                  </div>
-                </div>
+                <TaskDetailsTab tasks={dsawsTasks} simulationTime={simulationTime} />
               </TabsContent>
-
-              {/* <TabsContent value="timeline">
-                <div className="space-y-4">
-                  <h3 className="text-lg font-medium">DSAWS Timeline</h3>
-                  <TimelineVisualization
-                    tasks={dsawsTasks}
-                    vms={dsawsVMs}
-                    currentTime={simulationTime}
-                    maxTime={deadline}
-                  />
-                </div>
-              </TabsContent> */}
 
               <TabsContent value="diagram">
                 <div className="space-y-4">
@@ -689,22 +462,17 @@ const WorkflowSimulation = forwardRef<
               </TabsContent>
 
               <TabsContent value="allocation">
-                <div className="space-y-6">
-                  <AllocationComparison
-                    dsawsVMs={dsawsVMs}
-                    cgaVMs={cgaVMs}
-                    dynaVMs={dynaVMs}
-                    dsawsTasks={dsawsTasks}
-                    cgaTasks={cgaTasks}
-                    dynaTasks={dynaTasks}
-                  />
-
-                  <div className="grid grid-cols-1 gap-6">
-                    {showDSAWS && <TaskAllocationVisualization vms={dsawsVMs} tasks={dsawsTasks} algorithm="DSAWS" />}
-                    {showCGA && <TaskAllocationVisualization vms={cgaVMs} tasks={cgaTasks} algorithm="CGA" />}
-                    {showDyna && <TaskAllocationVisualization vms={dynaVMs} tasks={dynaTasks} algorithm="Dyna" />}
-                  </div>
-                </div>
+                <AllocationTab
+                  dsawsVMs={dsawsVMs}
+                  cgaVMs={cgaVMs}
+                  dynaVMs={dynaVMs}
+                  dsawsTasks={dsawsTasks}
+                  cgaTasks={cgaTasks}
+                  dynaTasks={dynaTasks}
+                  showDSAWS={showDSAWS}
+                  showCGA={showCGA}
+                  showDyna={showDyna}
+                />
               </TabsContent>
             </Tabs>
           </CardContent>

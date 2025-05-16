@@ -22,3 +22,8 @@ export type VM = {
   algorithm: string
   currentTime: number
 }
+
+// Add this new type for the WorkflowSimulation ref
+export type WorkflowSimulationRef = {
+  resetSimulation: () => void
+}

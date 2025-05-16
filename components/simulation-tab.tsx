@@ -6,13 +6,14 @@ import { Button } from "@/components/ui/button"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Slider } from "@/components/ui/slider"
 import { Input } from "@/components/ui/input"
-import WorkflowSimulation, { type WorkflowSimulationRef } from "@/components/workflow-simulation"
+import WorkflowSimulation from "@/components/workflow-simulation"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
 import { ChevronDown, Info } from "lucide-react"
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
 import { useSimulation } from "@/context/simulation-context"
 import WorkflowDiagram from "@/components/workflow-diagram-simple"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import type { WorkflowSimulationRef } from "@/types/simulation"
 
 export default function SimulationTab() {
   const [selectedWorkflow, setSelectedWorkflow] = useState("sample")

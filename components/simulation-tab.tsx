@@ -25,7 +25,6 @@ export default function SimulationTab() {
   const [deadlineFactor, setDeadlineFactor] = useState(1.5)
   const [simulationProgress, setSimulationProgress] = useState(0)
   const [numTasks, setNumTasks] = useState(9) // Default to 9 tasks as in the paper
-  const [maxSimulationTime, setMaxSimulationTime] = useState(30) // Default to 30 seconds
   const [controlsTab, setControlsTab] = useState("settings")
 
   const handleStart = () => {
@@ -111,120 +110,72 @@ export default function SimulationTab() {
                     </Select>
                   </div>
 
-                  {selectedWorkflow !== "sample" && (
-                    <div>
-                      <div className="flex items-center space-x-2">
-                        <label className="text-sm font-medium">Number of Tasks</label>
-                        <TooltipProvider delayDuration={0}>
-                          <Tooltip>
-                            <TooltipTrigger asChild>
-                              <Button
-                                variant="ghost"
-                                size="icon"
-                                className="h-5 w-5"
-                                onClick={(e) => {
-                                  e.preventDefault()
-                                  e.stopPropagation()
-                                  // This forces the tooltip to stay open on click
-                                  const tooltip = document.querySelector(
-                                    '[data-state="closed"][data-radix-tooltip-content]',
-                                  )
-                                  if (tooltip) {
-                                    tooltip.setAttribute("data-state", "delayed-open")
-                                  }
-                                }}
-                              >
-                                <Info className="h-3 w-3" />
-                              </Button>
-                            </TooltipTrigger>
-                            <TooltipContent side="right" sideOffset={5} className="max-w-xs">
-                              <p>
-                                For the sample workflow from the paper, this is fixed at 9 tasks with predefined
-                                runtimes and dependencies.
-                              </p>
-                            </TooltipContent>
-                          </Tooltip>
-                        </TooltipProvider>
-                      </div>
-                      <div className="flex items-center space-x-2">
-                        <div className="relative flex-1">
-                          <Input
-                            type="number"
-                            min={9}
-                            max={10000}
-                            value={numTasks}
-                            onChange={(e) => handleTaskCountChange(e.target.value)}
-                            className="w-full pr-10"
-                            disabled={selectedWorkflow === "sample"}
-                          />
-                          <DropdownMenu>
-                            <DropdownMenuTrigger asChild>
-                              <Button
-                                variant="ghost"
-                                size="icon"
-                                className="absolute right-0 top-0 h-full"
-                                disabled={selectedWorkflow === "sample"}
-                              >
-                                <ChevronDown className="h-4 w-4" />
-                              </Button>
-                            </DropdownMenuTrigger>
-                            <DropdownMenuContent align="end">
-                              <DropdownMenuItem onClick={() => setNumTasks(100)}>100 tasks</DropdownMenuItem>
-                              <DropdownMenuItem onClick={() => setNumTasks(500)}>500 tasks</DropdownMenuItem>
-                              <DropdownMenuItem onClick={() => setNumTasks(1000)}>1000 tasks</DropdownMenuItem>
-                              <DropdownMenuItem onClick={() => setNumTasks(2000)}>2000 tasks</DropdownMenuItem>
-                            </DropdownMenuContent>
-                          </DropdownMenu>
-                        </div>
-                      </div>
+                  <div>
+                    <div className="flex items-center space-x-2">
+                      <label className="text-sm font-medium">Number of Tasks</label>
+                      <TooltipProvider delayDuration={0}>
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              className="h-5 w-5"
+                              onClick={(e) => {
+                                e.preventDefault()
+                                e.stopPropagation()
+                                // This forces the tooltip to stay open on click
+                                const tooltip = document.querySelector(
+                                  '[data-state="closed"][data-radix-tooltip-content]',
+                                )
+                                if (tooltip) {
+                                  tooltip.setAttribute("data-state", "delayed-open")
+                                }
+                              }}
+                            >
+                              <Info className="h-3 w-3" />
+                            </Button>
+                          </TooltipTrigger>
+                          <TooltipContent side="right" sideOffset={5} className="max-w-xs">
+                            <p>
+                              For the sample workflow from the paper, this is fixed at 9 tasks with predefined
+                              runtimes and dependencies.
+                            </p>
+                          </TooltipContent>
+                        </Tooltip>
+                      </TooltipProvider>
                     </div>
-                  )}
-
-                  {selectedWorkflow === "sample" && (
-                    <div>
-                      <div className="flex items-center space-x-2">
-                        <label className="text-sm font-medium">Max Simulation Time (seconds)</label>
-                        <TooltipProvider delayDuration={0}>
-                          <Tooltip>
-                            <TooltipTrigger asChild>
-                              <Button
-                                variant="ghost"
-                                size="icon"
-                                className="h-5 w-5"
-                                onClick={(e) => {
-                                  e.preventDefault()
-                                  e.stopPropagation()
-                                  // This forces the tooltip to stay open on click
-                                  const tooltip = document.querySelector(
-                                    '[data-state="closed"][data-radix-tooltip-content]',
-                                  )
-                                  if (tooltip) {
-                                    tooltip.setAttribute("data-state", "delayed-open")
-                                  }
-                                }}
-                              >
-                                <Info className="h-3 w-3" />
-                              </Button>
-                            </TooltipTrigger>
-                            <TooltipContent side="right" sideOffset={5} className="max-w-xs">
-                              <p>For the sample workflow, 30 seconds is recommended to match the paper's timeline.</p>
-                            </TooltipContent>
-                          </Tooltip>
-                        </TooltipProvider>
-                      </div>
-                      <div className="flex items-center space-x-2">
+                    <div className="flex items-center space-x-2">
+                      <div className="relative flex-1">
                         <Input
                           type="number"
-                          min={30}
-                          max={3600}
-                          value={maxSimulationTime}
-                          onChange={(e) => setMaxSimulationTime(Number.parseInt(e.target.value) || 30)}
-                          className="w-full"
+                          min={9}
+                          max={10000}
+                          value={numTasks}
+                          onChange={(e) => handleTaskCountChange(e.target.value)}
+                          className="w-full pr-10"
                           disabled={selectedWorkflow === "sample"}
                         />
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild>
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              className="absolute right-0 top-0 h-full"
+                              disabled={selectedWorkflow === "sample"}
+                            >
+                              <ChevronDown className="h-4 w-4" />
+                            </Button>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent align="end">
+                            <DropdownMenuItem onClick={() => setNumTasks(100)}>100 tasks</DropdownMenuItem>
+                            <DropdownMenuItem onClick={() => setNumTasks(500)}>500 tasks</DropdownMenuItem>
+                            <DropdownMenuItem onClick={() => setNumTasks(1000)}>1000 tasks</DropdownMenuItem>
+                            <DropdownMenuItem onClick={() => setNumTasks(2000)}>2000 tasks</DropdownMenuItem>
+                          </DropdownMenuContent>
+                        </DropdownMenu>
                       </div>
                     </div>
-                  )}
+                  </div>
 
                   <div>
                     <label className="text-sm font-medium">Deadline Factor</label>
@@ -350,7 +301,6 @@ export default function SimulationTab() {
         deadlineFactor={deadlineFactor}
         onProgressChange={handleProgressChange}
         numTasks={numTasks}
-        maxSimulationTime={maxSimulationTime}
       />
     </div>
   )

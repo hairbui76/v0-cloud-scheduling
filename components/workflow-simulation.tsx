@@ -9,7 +9,6 @@ import { FastForward } from "lucide-react"
 
 // Import the SVG-based components
 import WorkflowDiagram from "@/components/workflow-diagram"
-import TimelineVisualization from "@/components/timeline-visualization"
 import TaskAllocationVisualization from "@/components/task-allocation-visualization"
 import AllocationComparison from "@/components/allocation-comparison"
 import SimulationOverview from "@/components/simulation-overview"
@@ -29,7 +28,6 @@ export default function WorkflowSimulation({
   deadlineFactor,
   onProgressChange,
   numTasks = 9,
-  maxSimulationTime = 30,
 }) {
   const [simulationTime, setSimulationTime] = useState(0)
   const [dsawsProgress, setDsawsProgress] = useState(0)
@@ -65,13 +63,11 @@ export default function WorkflowSimulation({
 
   // Store the current task count and max time for reference
   const taskCountRef = useRef(numTasks)
-  const maxTimeRef = useRef(maxSimulationTime)
 
   // Initialize simulation based on workflow type or when user changes task count or max time
   useEffect(() => {
     // Update refs with current values
     taskCountRef.current = numTasks
-    maxTimeRef.current = maxSimulationTime
 
     // Reset initialization flag
     initializedRef.current = false
@@ -80,7 +76,7 @@ export default function WorkflowSimulation({
     setSimulationCompleted(false)
 
     resetSimulation()
-  }, [workflowType, deadlineFactor, numTasks, maxSimulationTime])
+  }, [workflowType, deadlineFactor, numTasks])
 
   // Handle simulation running state
   useEffect(() => {
@@ -178,19 +174,22 @@ export default function WorkflowSimulation({
     // Update task completion status based on current time
     updateTaskStatus(elapsedTimeRef.current)
 
-    // Calculate progress as a percentage of max simulation time
-    const progressPercent = Math.min(100, (elapsedTimeRef.current / maxTimeRef.current) * 100)
-
     // Update algorithm progress based on completed tasks
-    const dsawsCompletedTasks = dsawsTasks.filter(
-      (task) => elapsedTimeRef.current >= (task.endTime || Number.POSITIVE_INFINITY),
-    ).length
+    const dsawsCompletedTasks = dsawsTasks.filter((task) => task.completed).length
     const dsawsProgressPercent = (dsawsCompletedTasks / dsawsTasks.length) * 100
     setDsawsProgress(dsawsProgressPercent)
 
+    const cgaCompletedTasks = cgaTasks.filter((task) => task.completed).length
+    const cgaProgressPercent = (cgaCompletedTasks / cgaTasks.length) * 100
+    setCgaProgress(cgaProgressPercent)
+
+    const dynaCompletedTasks = dynaTasks.filter((task) => task.completed).length
+    const dynaProgressPercent = (dynaCompletedTasks / dynaTasks.length) * 100
+    setDynaProgress(dynaProgressPercent)
+
     // For CGA and Dyna, use simpler progress calculation
-    setCgaProgress(Math.min(100, progressPercent))
-    setDynaProgress(Math.min(100, progressPercent * 0.9)) // Dyna is slightly slower
+    // setCgaProgress(Math.min(100, progressPercent))
+    // setDynaProgress(Math.min(100, progressPercent * 0.9)) // Dyna is slightly slower
 
     // Update costs
     setDsawsCost(calculateCost(dsawsVMs, elapsedTimeRef.current))
@@ -198,21 +197,45 @@ export default function WorkflowSimulation({
     setDynaCost(calculateCost(dynaVMs, elapsedTimeRef.current))
 
     // Check deadline compliance
-    if (elapsedTimeRef.current > deadline) {
-      if (dsawsProgress < 100) setDsawsMeetsDeadline(false)
-      if (cgaProgress < 100) setCgaMeetsDeadline(false)
-      if (dynaProgress < 100) setDynaMeetsDeadline(false)
+    // if (elapsedTimeRef.current > deadline) {
+    //   if (dsawsProgress < 100) setDsawsMeetsDeadline(false)
+    //   if (cgaProgress < 100) setCgaMeetsDeadline(false)
+    //   if (dynaProgress < 100) setDynaMeetsDeadline(false)
+    // }
+
+    console.log("========================================")
+    console.log("dsawsCompletedTasks", dsawsCompletedTasks)
+    console.log("dsawsTasks.length", dsawsTasks.length)
+
+    console.log("cgaCompletedTasks", cgaCompletedTasks)
+    console.log("cgaTasks.length", cgaTasks.length)
+
+    console.log("dynaCompletedTasks", dynaCompletedTasks)
+    console.log("dynaTasks.length", dynaTasks.length)
+    console.log("========================================")
+
+    // Check if all DSAWS tasks completed
+    if (dsawsCompletedTasks === dsawsTasks.length) {
+      setDsawsMeetsDeadline(true)
+      setDsawsProgress(100)
+    }
+
+    // Check if all CGA tasks completed
+    if (cgaCompletedTasks === cgaTasks.length) {
+      setCgaMeetsDeadline(true)
+      setCgaProgress(100)
+    }
+
+    // Check if all Dyna tasks completed
+    if (dynaCompletedTasks === dynaTasks.length) {
+      setDynaMeetsDeadline(true)
+      setDynaProgress(100)
     }
 
     // Continue animation if not complete
-    if (elapsedTimeRef.current < maxTimeRef.current && progressPercent < 100) {
+    if (dsawsProgress < 100 || cgaProgress < 100 || dynaProgress < 100) {
       animationRef.current = requestAnimationFrame(animationFrame)
     } else {
-      // Ensure we reach 100% for completed algorithms
-      if (dsawsCompletedTasks === dsawsTasks.length) setDsawsProgress(100)
-      setCgaProgress(100)
-      setDynaProgress(100)
-
       // Mark simulation as completed
       setSimulationCompleted(true)
 
@@ -233,7 +256,12 @@ export default function WorkflowSimulation({
   const updateTaskStatus = (currentTime: number) => {
     // Update DSAWS tasks
     const updatedDsawsTasks = dsawsTasks.map((task) => {
-      if (currentTime >= (task.endTime || Number.POSITIVE_INFINITY) && !task.completed) {
+      // check if dependencies are completed
+      const dependenciesCompleted = task.dependencies.every((dependency) => {
+        const dependencyTask = dsawsTasks.find((t) => t.id === dependency)
+        return dependencyTask?.completed
+      })
+      if (currentTime >= (task.endTime || Number.POSITIVE_INFINITY) && !task.completed && dependenciesCompleted) {
         return { ...task, completed: true }
       }
       return task
@@ -362,10 +390,10 @@ export default function WorkflowSimulation({
           <SimulationOverview simulationTime={simulationTime} deadline={deadline} isRunning={isRunning} />
 
           <Tabs defaultValue="overview" value={activeTab} onValueChange={setActiveTab} className="mb-6">
-            <TabsList className="grid w-full grid-cols-5">
+            <TabsList className="grid w-full grid-cols-4">
               <TabsTrigger value="overview">Overview</TabsTrigger>
               <TabsTrigger value="tasks">Task Details</TabsTrigger>
-              <TabsTrigger value="timeline">Timeline</TabsTrigger>
+              {/* <TabsTrigger value="timeline">Timeline</TabsTrigger> */}
               <TabsTrigger value="diagram">Workflow Diagram</TabsTrigger>
               <TabsTrigger value="allocation">VM Allocation</TabsTrigger>
             </TabsList>
@@ -465,17 +493,17 @@ export default function WorkflowSimulation({
               </div>
             </TabsContent>
 
-            <TabsContent value="timeline">
+            {/* <TabsContent value="timeline">
               <div className="space-y-4">
                 <h3 className="text-lg font-medium">DSAWS Timeline</h3>
                 <TimelineVisualization
                   tasks={dsawsTasks}
                   vms={dsawsVMs}
                   currentTime={simulationTime}
-                  maxTime={maxSimulationTime}
+                  maxTime={deadline}
                 />
               </div>
-            </TabsContent>
+            </TabsContent> */}
 
             <TabsContent value="diagram">
               <div className="space-y-4">

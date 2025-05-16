@@ -4,6 +4,7 @@
     "allowJs": true,
     "target": "ES6",
     "skipLibCheck": true,
+    "noImplicitAny": false,
     "strict": true,
     "noEmit": true,
     "esModuleInterop": true,

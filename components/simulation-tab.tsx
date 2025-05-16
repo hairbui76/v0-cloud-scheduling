@@ -1,12 +1,12 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useRef } from "react"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Slider } from "@/components/ui/slider"
 import { Input } from "@/components/ui/input"
-import WorkflowSimulation from "@/components/workflow-simulation"
+import WorkflowSimulation, { type WorkflowSimulationRef } from "@/components/workflow-simulation"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
 import { ChevronDown, Info } from "lucide-react"
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
@@ -27,6 +27,9 @@ export default function SimulationTab() {
   const [numTasks, setNumTasks] = useState(9) // Default to 9 tasks as in the paper
   const [controlsTab, setControlsTab] = useState("settings")
 
+  // Create a ref to the WorkflowSimulation component
+  const simulationRef = useRef<WorkflowSimulationRef>(null)
+
   const handleStart = () => {
     // If simulation was completed, reset it first
     if (simulationProgress >= 100) {
@@ -45,9 +48,14 @@ export default function SimulationTab() {
   }
 
   const handleReset = () => {
+    console.log("Reset button clicked")
     setIsRunning(false)
     setSimulationProgress(0)
-    // Reset simulation state
+
+    // Call the resetSimulation function on the WorkflowSimulation component
+    if (simulationRef.current) {
+      simulationRef.current.resetSimulation()
+    }
   }
 
   // Add a handler for progress updates
@@ -292,6 +300,7 @@ export default function SimulationTab() {
       </Card>
 
       <WorkflowSimulation
+        ref={simulationRef}
         workflowType={selectedWorkflow}
         isRunning={isRunning}
         simulationSpeed={simulationSpeed}

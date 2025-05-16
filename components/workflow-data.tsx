@@ -133,6 +133,8 @@ const workflowData = {
   },
 }
 
+import WorkflowDiagram from "@/components/workflow-diagram"
+
 export default function WorkflowData({ workflowType }) {
   // Check if workflowType is valid and exists in workflowData
   if (!workflowType || !workflowData[workflowType]) {
@@ -229,6 +231,13 @@ export default function WorkflowData({ workflowType }) {
               </ChartContainer>
             </div>
           </div>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardContent className="pt-6">
+          <h3 className="text-lg font-medium mb-4">Workflow Structure Diagram</h3>
+          <WorkflowDiagram workflowType={workflowType} />
         </CardContent>
       </Card>
     </div>

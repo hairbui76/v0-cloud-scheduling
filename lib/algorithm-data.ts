@@ -2,9 +2,9 @@
 export const algorithmData = {
   montage: {
     deadlineSuccess: [
-      { factor: "1.0", DSAWS: 100, CGA: 25, Dyna: 50 },
-      { factor: "1.5", DSAWS: 100, CGA: 25, Dyna: 50 },
-      { factor: "2.0", DSAWS: 100, CGA: 25, Dyna: 100 },
+      { factor: "1.0", DSAWS: 100, CGA: 0, Dyna: 100 },
+      { factor: "1.5", DSAWS: 100, CGA: 100, Dyna: 100 },
+      { factor: "2.0", DSAWS: 100, CGA: 100, Dyna: 100 },
     ],
     executionCost: [
       { factor: "1.0", DSAWS: 0.12, CGA: 0.18, Dyna: 0.25 },
@@ -24,9 +24,9 @@ export const algorithmData = {
   },
   cybershake: {
     deadlineSuccess: [
-      { factor: "1.0", DSAWS: 100, CGA: 25, Dyna: 50 },
-      { factor: "1.5", DSAWS: 100, CGA: 25, Dyna: 50 },
-      { factor: "2.0", DSAWS: 100, CGA: 25, Dyna: 100 },
+      { factor: "1.0", DSAWS: 100, CGA: 0, Dyna: 0 },
+      { factor: "1.5", DSAWS: 100, CGA: 0, Dyna: 0 },
+      { factor: "2.0", DSAWS: 100, CGA: 0, Dyna: 100 },
     ],
     executionCost: [
       { factor: "1.0", DSAWS: 1.2, CGA: 2.1, Dyna: 2.5 },
@@ -46,9 +46,9 @@ export const algorithmData = {
   },
   ligo: {
     deadlineSuccess: [
-      { factor: "1.0", DSAWS: 100, CGA: 25, Dyna: 50 },
-      { factor: "1.5", DSAWS: 100, CGA: 25, Dyna: 50 },
-      { factor: "2.0", DSAWS: 100, CGA: 25, Dyna: 100 },
+      { factor: "1.0", DSAWS: 100, CGA: 0, Dyna: 0 },
+      { factor: "1.5", DSAWS: 100, CGA: 0, Dyna: 0 },
+      { factor: "2.0", DSAWS: 100, CGA: 0, Dyna: 100 },
     ],
     executionCost: [
       { factor: "1.0", DSAWS: 2.5, CGA: 4.2, Dyna: 5.1 },
@@ -67,8 +67,8 @@ export const algorithmData = {
   },
   epigenomics: {
     deadlineSuccess: [
-      { factor: "1.0", DSAWS: 100, CGA: 25, Dyna: 50 },
-      { factor: "1.5", DSAWS: 100, CGA: 25, Dyna: 50 },
+      { factor: "1.0", DSAWS: 100, CGA: 0, Dyna: 0 },
+      { factor: "1.5", DSAWS: 100, CGA: 0, Dyna: 0 },
       { factor: "2.0", DSAWS: 100, CGA: 100, Dyna: 100 },
     ],
     executionCost: [
@@ -88,9 +88,9 @@ export const algorithmData = {
   },
   sample: {
     deadlineSuccess: [
-      { factor: "1.0", DSAWS: 100, CGA: 25, Dyna: 50 },
-      { factor: "1.5", DSAWS: 100, CGA: 25, Dyna: 50 },
-      { factor: "2.0", DSAWS: 100, CGA: 25, Dyna: 100 },
+      { factor: "1.0", DSAWS: 50, CGA: 25, Dyna: 75 },
+      { factor: "1.5", DSAWS: 75, CGA: 50, Dyna: 90 },
+      { factor: "2.0", DSAWS: 90, CGA: 75, Dyna: 100 },
     ],
     executionCost: [
       { factor: "1.0", DSAWS: 10, CGA: 15, Dyna: 20 },

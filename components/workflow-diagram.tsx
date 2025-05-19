@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useState, useMemo } from "react"
+import { useEffect, useState } from "react"
 
 type Task = {
   id: string
@@ -12,7 +12,6 @@ type Task = {
   startTime?: number
   endTime?: number
   assignedVM?: string
-  completed?: boolean
 }
 
 type NodePosition = {
@@ -20,35 +19,23 @@ type NodePosition = {
   y: number
 }
 
-export default function WorkflowDiagram({ tasks = [], currentTime = 0 }) {
+export default function WorkflowDiagram({ tasks, currentTime = 0 }) {
   const [positions, setPositions] = useState<Record<string, NodePosition>>({})
 
-  // Calculate positions once when tasks change
   useEffect(() => {
-    if (!tasks || tasks.length === 0) return
-
-    // Calculate positions for each task using a more robust algorithm
+    // Calculate positions for each task
     const newPositions: Record<string, NodePosition> = {}
     const levelCounts: Record<number, number> = {}
     const levelCurrentCounts: Record<number, number> = {}
 
     // Count tasks per level
     tasks.forEach((task) => {
-      const level = task.level || 1
-      levelCounts[level] = (levelCounts[level] || 0) + 1
-    })
-
-    // Sort tasks by level and then by rank (higher rank first)
-    const sortedTasks = [...tasks].sort((a, b) => {
-      if ((a.level || 1) !== (b.level || 1)) {
-        return (a.level || 1) - (b.level || 1)
-      }
-      return (b.rank || 0) - (a.rank || 0)
+      levelCounts[task.level] = (levelCounts[task.level] || 0) + 1
     })
 
     // Calculate positions
-    sortedTasks.forEach((task) => {
-      const level = task.level || 1
+    tasks.forEach((task) => {
+      const level = task.level
       levelCurrentCounts[level] = (levelCurrentCounts[level] || 0) + 1
 
       // Calculate horizontal position based on level count
@@ -57,7 +44,7 @@ export default function WorkflowDiagram({ tasks = [], currentTime = 0 }) {
 
       // Calculate vertical position based on level
       // Increase vertical spacing between levels
-      const y = 120 * level
+      const y = 150 * level
 
       newPositions[task.id] = { x, y }
     })
@@ -67,7 +54,7 @@ export default function WorkflowDiagram({ tasks = [], currentTime = 0 }) {
 
   // Get task status based on current time
   const getTaskStatus = (task: Task) => {
-    if (task.completed || currentTime >= (task.endTime || Number.POSITIVE_INFINITY)) {
+    if (currentTime >= (task.endTime || Number.POSITIVE_INFINITY)) {
       return "completed"
     } else if (currentTime >= (task.startTime || 0)) {
       return "running"
@@ -91,36 +78,8 @@ export default function WorkflowDiagram({ tasks = [], currentTime = 0 }) {
     }
   }
 
-  // Memoize connections to avoid recalculating on every render
-  const connections = useMemo(() => {
-    if (!tasks || tasks.length === 0 || Object.keys(positions).length === 0) return []
-
-    const result = []
-
-    tasks.forEach((task) => {
-      if (!task.dependencies) return
-
-      task.dependencies.forEach((depId) => {
-        const sourcePos = positions[depId]
-        const targetPos = positions[task.id]
-
-        if (!sourcePos || !targetPos) return
-
-        result.push({
-          id: `${depId}-${task.id}`,
-          source: sourcePos,
-          target: targetPos,
-          sourceId: depId,
-          targetId: task.id,
-        })
-      })
-    })
-
-    return result
-  }, [tasks, positions])
-
   // Function to create a connection line with an arrow
-  const createConnectionWithArrow = (sourceX, sourceY, targetX, targetY, key) => {
+  const createConnectionWithArrow = (sourceX, sourceY, targetX, targetY) => {
     // Calculate the angle and distance
     const dx = targetX - sourceX
     const dy = targetY - sourceY
@@ -145,38 +104,34 @@ export default function WorkflowDiagram({ tasks = [], currentTime = 0 }) {
     const arrowPoint2Y = endY - arrowSize * Math.sin(angle + Math.PI / 6)
 
     return (
-      <g key={key}>
+      <>
         {/* Main line */}
         <line x1={startX} y1={startY} x2={endX} y2={endY} stroke="#666666" strokeWidth="2" />
 
         {/* Arrow head */}
         <line x1={arrowPoint1X} y1={arrowPoint1Y} x2={endX} y2={endY} stroke="#666666" strokeWidth="2" />
         <line x1={arrowPoint2X} y1={arrowPoint2Y} x2={endX} y2={endY} stroke="#666666" strokeWidth="2" />
-      </g>
+      </>
     )
   }
-
-  // If no tasks or positions, show a placeholder
-  if (!tasks || tasks.length === 0 || Object.keys(positions).length === 0) {
-    return (
-      <div className="border rounded-md p-4 flex items-center justify-center h-[400px] bg-gray-50">
-        <p className="text-gray-500">No workflow data available to display</p>
-      </div>
-    )
-  }
-
-  // Calculate SVG dimensions based on task positions
-  const maxX = Math.max(...Object.values(positions).map((pos) => pos.x)) + 100
-  const maxY = Math.max(...Object.values(positions).map((pos) => pos.y)) + 150
-  const svgWidth = Math.max(800, maxX)
-  const svgHeight = Math.max(400, maxY)
 
   return (
-    <div className="border rounded-md p-4 overflow-x-auto bg-white">
-      <svg width={svgWidth} height={svgHeight} className="mx-auto">
+    <div className="border rounded-md p-4 overflow-x-auto">
+      <svg width="900" height="650" className="w-full h-auto">
         {/* Draw connections with arrows */}
-        {connections.map((conn) =>
-          createConnectionWithArrow(conn.source.x, conn.source.y, conn.target.x, conn.target.y, conn.id),
+        {tasks.map((task) =>
+          task.dependencies.map((depId) => {
+            const sourcePos = positions[depId]
+            const targetPos = positions[task.id]
+
+            if (!sourcePos || !targetPos) return null
+
+            return (
+              <g key={`${depId}-${task.id}`}>
+                {createConnectionWithArrow(sourcePos.x, sourcePos.y, targetPos.x, targetPos.y)}
+              </g>
+            )
+          }),
         )}
 
         {/* Draw nodes (tasks) */}
@@ -203,83 +158,42 @@ export default function WorkflowDiagram({ tasks = [], currentTime = 0 }) {
                 textAnchor="middle"
                 dominantBaseline="middle"
                 fill="#ffffff"
-                fontSize="14"
+                fontSize="16"
                 fontWeight="bold"
               >
                 {task.id}
               </text>
 
               {/* Task details - positioned below the circle with more spacing */}
-              <g className="task-details">
-                <text
-                  x={pos.x}
-                  y={pos.y + 50}
-                  textAnchor="middle"
-                  dominantBaseline="middle"
-                  fill="#374151"
-                  fontSize="12"
-                >
-                  Rank: {task.rank}
-                </text>
+              <text x={pos.x} y={pos.y + 50} textAnchor="middle" dominantBaseline="middle" fill="#374151" fontSize="12">
+                Rank: {task.rank}
+              </text>
 
-                <text
-                  x={pos.x}
-                  y={pos.y + 70}
-                  textAnchor="middle"
-                  dominantBaseline="middle"
-                  fill="#374151"
-                  fontSize="12"
-                >
-                  Time: {task.runtime}s
-                </text>
+              <text x={pos.x} y={pos.y + 70} textAnchor="middle" dominantBaseline="middle" fill="#374151" fontSize="12">
+                Time: {task.runtime}s
+              </text>
 
-                <text
-                  x={pos.x}
-                  y={pos.y + 90}
-                  textAnchor="middle"
-                  dominantBaseline="middle"
-                  fill="#374151"
-                  fontSize="12"
-                >
-                  VM: {task.assignedVM || "N/A"}
-                </text>
-              </g>
+              <text x={pos.x} y={pos.y + 90} textAnchor="middle" dominantBaseline="middle" fill="#374151" fontSize="12">
+                VM: {task.assignedVM}
+              </text>
             </g>
           )
         })}
-
-        {/* Current time indicator */}
-        {currentTime > 0 && (
-          <line
-            x1={0}
-            y1={svgHeight - 30}
-            x2={svgWidth}
-            y2={svgHeight - 30}
-            stroke="#ef4444"
-            strokeWidth="2"
-            strokeDasharray="5,5"
-          />
-        )}
-        {currentTime > 0 && (
-          <text x={10} y={svgHeight - 10} fill="#ef4444" fontSize="12" fontWeight="bold">
-            Current Time: {currentTime.toFixed(1)}s
-          </text>
-        )}
       </svg>
 
       {/* Legend */}
       <div className="mt-4 flex justify-center space-x-6">
         <div className="flex items-center">
-          <div className="w-4 h-4 rounded-full bg-gray-300 mr-2"></div>
-          <span className="text-sm">Waiting</span>
+          <div className="w-3 h-3 rounded-full bg-gray-300 mr-2"></div>
+          <span className="text-xs">Waiting</span>
         </div>
         <div className="flex items-center">
-          <div className="w-4 h-4 rounded-full bg-blue-500 mr-2"></div>
-          <span className="text-sm">Running</span>
+          <div className="w-3 h-3 rounded-full bg-blue-500 mr-2"></div>
+          <span className="text-xs">Running</span>
         </div>
         <div className="flex items-center">
-          <div className="w-4 h-4 rounded-full bg-green-500 mr-2"></div>
-          <span className="text-sm">Completed</span>
+          <div className="w-3 h-3 rounded-full bg-green-500 mr-2"></div>
+          <span className="text-xs">Completed</span>
         </div>
       </div>
     </div>

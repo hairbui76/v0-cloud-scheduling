@@ -118,9 +118,7 @@ export default function SimulationVMDetails({
             <DollarSign className="h-4 w-4" />
             <span className="text-sm">${cost.toFixed(4)}</span>
           </div>
-          <CustomBadge variant={meetsDeadline ? "success" : "destructive"}>
-            {meetsDeadline ? "Meets Deadline" : "Misses Deadline"}
-          </CustomBadge>
+          {/* Removed the "Meets Deadline" badge */}
         </div>
       </div>
       <Progress value={progress} className="h-2" />

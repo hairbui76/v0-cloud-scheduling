@@ -10,7 +10,7 @@ import { algorithmData, algorithmDescriptions } from "@/lib/algorithm-data"
 export default function AlgorithmComparison({
   workflowType = "sample",
   simulationResults = [],
-  done = false
+  done = false,
 }: {
   workflowType: string
   simulationResults: SimulationResult[]
@@ -24,147 +24,149 @@ export default function AlgorithmComparison({
   const staticData = algorithmData[safeWorkflowType]
 
   // Process simulation results into chart data format
-  const processedData = staticData
+  const processedData = hasResults ? processSimulationResults(simulationResults) : staticData
 
   return (
     <div className="space-y-6">
-      {done && workflowType !== "sample" && <Card>
-        <CardContent className="pt-6">
-          <Tabs defaultValue="success" className="w-full">
-            <TabsList className="grid w-full grid-cols-3">
-              <TabsTrigger value="success">Deadline Success Rate</TabsTrigger>
-              <TabsTrigger value="cost">Execution Cost</TabsTrigger>
-              <TabsTrigger value="vms">VM Utilization</TabsTrigger>
-            </TabsList>
+      {done && workflowType !== "sample" && (
+        <Card>
+          <CardContent className="pt-6">
+            <Tabs defaultValue="success" className="w-full">
+              <TabsList className="grid w-full grid-cols-3">
+                <TabsTrigger value="success">Deadline Success Rate</TabsTrigger>
+                <TabsTrigger value="cost">Execution Cost</TabsTrigger>
+                <TabsTrigger value="vms">VM Utilization</TabsTrigger>
+              </TabsList>
 
-            <TabsContent value="success" className="pt-4">
-              <h3 className="text-lg font-medium mb-4">Deadline Success Rate (%)</h3>
-              <ChartContainer
-                config={{
-                  DSAWS: {
-                    label: "DSAWS",
-                    color: "hsl(var(--chart-1))",
-                  },
-                  CGA: {
-                    label: "CGA",
-                    color: "hsl(var(--chart-2))",
-                  },
-                  Dyna: {
-                    label: "Dyna",
-                    color: "hsl(var(--chart-3))",
-                  },
-                }}
-                className="h-[400px]"
-              >
-                <ResponsiveContainer width="100%" height="100%">
-                  <BarChart data={processedData.deadlineSuccess}>
-                    <CartesianGrid strokeDasharray="3 3" />
-                    <XAxis
-                      dataKey="factor"
-                      label={{ value: "Deadline Factor", position: "insideBottom", offset: -5 }}
-                    />
-                    <YAxis label={{ value: "Success Rate (%)", angle: -90, position: "insideLeft" }} />
-                    <ChartTooltip content={<ChartTooltipContent />} />
-                    <Legend />
-                    <Bar dataKey="DSAWS" name="DSAWS" fill="var(--color-DSAWS)" />
-                    <Bar dataKey="CGA" name="CGA" fill="var(--color-CGA)" />
-                    <Bar dataKey="Dyna" name="Dyna" fill="var(--color-Dyna)" />
-                  </BarChart>
-                </ResponsiveContainer>
-              </ChartContainer>
-              <p className="text-sm text-muted-foreground mt-4">
-                {hasResults
-                  ? "This chart shows the actual deadline success rates from your simulations."
-                  : "This chart shows the percentage of successful executions that meet the deadline for each algorithm across different deadline factors. A deadline factor of 1.0 represents the strictest deadline (equal to the maximum rank value), while higher factors represent more relaxed deadlines."}
-              </p>
-            </TabsContent>
+              <TabsContent value="success" className="pt-4">
+                <h3 className="text-lg font-medium mb-4">Deadline Success Rate (%)</h3>
+                <ChartContainer
+                  config={{
+                    DSAWS: {
+                      label: "DSAWS",
+                      color: "hsl(var(--chart-1))",
+                    },
+                    CGA: {
+                      label: "CGA",
+                      color: "hsl(var(--chart-2))",
+                    },
+                    Dyna: {
+                      label: "Dyna",
+                      color: "hsl(var(--chart-3))",
+                    },
+                  }}
+                  className="h-[400px]"
+                >
+                  <ResponsiveContainer width="100%" height="100%">
+                    <BarChart data={processedData.deadlineSuccess}>
+                      <CartesianGrid strokeDasharray="3 3" />
+                      <XAxis
+                        dataKey="factor"
+                        label={{ value: "Deadline Factor", position: "insideBottom", offset: -5 }}
+                      />
+                      <YAxis label={{ value: "Success Rate (%)", angle: -90, position: "insideLeft" }} />
+                      <ChartTooltip content={<ChartTooltipContent />} />
+                      <Legend />
+                      <Bar dataKey="DSAWS" name="DSAWS" fill="var(--color-DSAWS)" />
+                      <Bar dataKey="CGA" name="CGA" fill="var(--color-CGA)" />
+                      <Bar dataKey="Dyna" name="Dyna" fill="var(--color-Dyna)" />
+                    </BarChart>
+                  </ResponsiveContainer>
+                </ChartContainer>
+                <p className="text-sm text-muted-foreground mt-4">
+                  {hasResults
+                    ? "This chart shows the actual deadline success rates from your simulations."
+                    : "This chart shows the percentage of successful executions that meet the deadline for each algorithm across different deadline factors. A deadline factor of 1.0 represents the strictest deadline (equal to the maximum rank value), while higher factors represent more relaxed deadlines."}
+                </p>
+              </TabsContent>
 
-            <TabsContent value="cost" className="pt-4">
-              <h3 className="text-lg font-medium mb-4">Execution Cost ($)</h3>
-              <ChartContainer
-                config={{
-                  DSAWS: {
-                    label: "DSAWS",
-                    color: "hsl(var(--chart-1))",
-                  },
-                  CGA: {
-                    label: "CGA",
-                    color: "hsl(var(--chart-2))",
-                  },
-                  Dyna: {
-                    label: "Dyna",
-                    color: "hsl(var(--chart-3))",
-                  },
-                }}
-                className="h-[400px]"
-              >
-                <ResponsiveContainer width="100%" height="100%">
-                  <BarChart data={processedData.executionCost}>
-                    <CartesianGrid strokeDasharray="3 3" />
-                    <XAxis
-                      dataKey="factor"
-                      label={{ value: "Deadline Factor", position: "insideBottom", offset: -5 }}
-                    />
-                    <YAxis label={{ value: "Execution Cost ($)", angle: -90, position: "insideLeft" }} />
-                    <ChartTooltip content={<ChartTooltipContent />} />
-                    <Legend />
-                    <Bar dataKey="DSAWS" name="DSAWS" fill="var(--color-DSAWS)" />
-                    <Bar dataKey="CGA" name="CGA" fill="var(--color-CGA)" />
-                    <Bar dataKey="Dyna" name="Dyna" fill="var(--color-Dyna)" />
-                  </BarChart>
-                </ResponsiveContainer>
-              </ChartContainer>
-              <p className="text-sm text-muted-foreground mt-4">
-                {hasResults
-                  ? "This chart shows the actual execution costs from your simulations."
-                  : "This chart shows the total execution cost for each algorithm across different deadline factors. As the deadline becomes more relaxed (higher factor), algorithms can use cheaper resources, resulting in lower costs. DSAWS consistently achieves the lowest cost while still meeting deadlines."}
-              </p>
-            </TabsContent>
+              <TabsContent value="cost" className="pt-4">
+                <h3 className="text-lg font-medium mb-4">Execution Cost ($)</h3>
+                <ChartContainer
+                  config={{
+                    DSAWS: {
+                      label: "DSAWS",
+                      color: "hsl(var(--chart-1))",
+                    },
+                    CGA: {
+                      label: "CGA",
+                      color: "hsl(var(--chart-2))",
+                    },
+                    Dyna: {
+                      label: "Dyna",
+                      color: "hsl(var(--chart-3))",
+                    },
+                  }}
+                  className="h-[400px]"
+                >
+                  <ResponsiveContainer width="100%" height="100%">
+                    <BarChart data={processedData.executionCost}>
+                      <CartesianGrid strokeDasharray="3 3" />
+                      <XAxis
+                        dataKey="factor"
+                        label={{ value: "Deadline Factor", position: "insideBottom", offset: -5 }}
+                      />
+                      <YAxis label={{ value: "Execution Cost ($)", angle: -90, position: "insideLeft" }} />
+                      <ChartTooltip content={<ChartTooltipContent />} />
+                      <Legend />
+                      <Bar dataKey="DSAWS" name="DSAWS" fill="var(--color-DSAWS)" />
+                      <Bar dataKey="CGA" name="CGA" fill="var(--color-CGA)" />
+                      <Bar dataKey="Dyna" name="Dyna" fill="var(--color-Dyna)" />
+                    </BarChart>
+                  </ResponsiveContainer>
+                </ChartContainer>
+                <p className="text-sm text-muted-foreground mt-4">
+                  {hasResults
+                    ? "This chart shows the actual execution costs from your simulations."
+                    : "This chart shows the total execution cost for each algorithm across different deadline factors. As the deadline becomes more relaxed (higher factor), algorithms can use cheaper resources, resulting in lower costs. DSAWS consistently achieves the lowest cost while still meeting deadlines."}
+                </p>
+              </TabsContent>
 
-            <TabsContent value="vms" className="pt-4">
-              <h3 className="text-lg font-medium mb-4">VM Utilization Over Time</h3>
-              <ChartContainer
-                config={{
-                  DSAWS: {
-                    label: "DSAWS",
-                    color: "hsl(var(--chart-1))",
-                  },
-                  CGA: {
-                    label: "CGA",
-                    color: "hsl(var(--chart-2))",
-                  },
-                  Dyna: {
-                    label: "Dyna",
-                    color: "hsl(var(--chart-3))",
-                  },
-                }}
-                className="h-[400px]"
-              >
-                <ResponsiveContainer width="100%" height="100%">
-                  <LineChart data={processedData.vmUtilization}>
-                    <CartesianGrid strokeDasharray="3 3" />
-                    <XAxis
-                      dataKey="time"
-                      label={{ value: "Simulation Time (seconds)", position: "insideBottom", offset: -5 }}
-                    />
-                    <YAxis label={{ value: "Number of VMs", angle: -90, position: "insideLeft" }} />
-                    <ChartTooltip content={<ChartTooltipContent />} />
-                    <Legend />
-                    <Line type="monotone" dataKey="DSAWS" name="DSAWS" stroke="var(--color-DSAWS)" strokeWidth={2} />
-                    <Line type="monotone" dataKey="CGA" name="CGA" stroke="var(--color-CGA)" strokeWidth={2} />
-                    <Line type="monotone" dataKey="Dyna" name="Dyna" stroke="var(--color-Dyna)" strokeWidth={2} />
-                  </LineChart>
-                </ResponsiveContainer>
-              </ChartContainer>
-              <p className="text-sm text-muted-foreground mt-4">
-                {hasResults
-                  ? "This chart shows the actual VM utilization over time from your simulations."
-                  : "This chart shows the number of VMs used by each algorithm over the course of the workflow execution. DSAWS typically uses fewer VMs by efficiently scheduling tasks on existing resources and minimizing data transfer costs. CGA and Dyna tend to provision more VMs, especially during peak execution periods."}
-              </p>
-            </TabsContent>
-          </Tabs>
-        </CardContent>
-      </Card>}
+              <TabsContent value="vms" className="pt-4">
+                <h3 className="text-lg font-medium mb-4">VM Utilization Over Time</h3>
+                <ChartContainer
+                  config={{
+                    DSAWS: {
+                      label: "DSAWS",
+                      color: "hsl(var(--chart-1))",
+                    },
+                    CGA: {
+                      label: "CGA",
+                      color: "hsl(var(--chart-2))",
+                    },
+                    Dyna: {
+                      label: "Dyna",
+                      color: "hsl(var(--chart-3))",
+                    },
+                  }}
+                  className="h-[400px]"
+                >
+                  <ResponsiveContainer width="100%" height="100%">
+                    <LineChart data={processedData.vmUtilization}>
+                      <CartesianGrid strokeDasharray="3 3" />
+                      <XAxis
+                        dataKey="time"
+                        label={{ value: "Simulation Time (seconds)", position: "insideBottom", offset: -5 }}
+                      />
+                      <YAxis label={{ value: "Number of VMs", angle: -90, position: "insideLeft" }} />
+                      <ChartTooltip content={<ChartTooltipContent />} />
+                      <Legend />
+                      <Line type="monotone" dataKey="DSAWS" name="DSAWS" stroke="var(--color-DSAWS)" strokeWidth={2} />
+                      <Line type="monotone" dataKey="CGA" name="CGA" stroke="var(--color-CGA)" strokeWidth={2} />
+                      <Line type="monotone" dataKey="Dyna" name="Dyna" stroke="var(--color-Dyna)" strokeWidth={2} />
+                    </LineChart>
+                  </ResponsiveContainer>
+                </ChartContainer>
+                <p className="text-sm text-muted-foreground mt-4">
+                  {hasResults
+                    ? "This chart shows the actual VM utilization over time from your simulations."
+                    : "This chart shows the number of VMs used by each algorithm over the course of the workflow execution. DSAWS typically uses fewer VMs by efficiently scheduling tasks on existing resources and minimizing data transfer costs. CGA and Dyna tend to provision more VMs, especially during peak execution periods."}
+                </p>
+              </TabsContent>
+            </Tabs>
+          </CardContent>
+        </Card>
+      )}
 
       <Card>
         <CardContent className="pt-6">

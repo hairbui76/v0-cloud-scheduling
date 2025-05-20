@@ -85,7 +85,7 @@ export const algorithmData = {
       { time: "25000", DSAWS: 8, CGA: 12, Dyna: 10 },
       { time: "30000", DSAWS: 3, CGA: 5, Dyna: 4 },
     ],
-  }
+  },
 }
 
 // Algorithm descriptions

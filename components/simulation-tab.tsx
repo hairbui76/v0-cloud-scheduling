@@ -15,7 +15,12 @@ import WorkflowDiagram from "@/components/workflow-diagram-simple"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import type { WorkflowSimulationRef } from "@/types/simulation"
 
-export default function SimulationTab() {
+// Add the onSimulationComplete prop to the component props
+interface SimulationTabProps {
+  onSimulationComplete?: () => void
+}
+
+export default function SimulationTab({ onSimulationComplete }: SimulationTabProps) {
   const [selectedWorkflow, setSelectedWorkflow] = useState("sample")
   const { setSimulationWorkflowType } = useSimulation()
   const [simulationSpeed, setSimulationSpeed] = useState(1)
@@ -62,9 +67,12 @@ export default function SimulationTab() {
   // Add a handler for progress updates
   const handleProgressChange = (progress) => {
     setSimulationProgress(progress)
-    // If simulation completes, stop it automatically
+    // If simulation completes, stop it automatically and call the callback
     if (progress >= 100) {
       setIsRunning(false)
+      if (onSimulationComplete) {
+        onSimulationComplete()
+      }
     }
   }
 

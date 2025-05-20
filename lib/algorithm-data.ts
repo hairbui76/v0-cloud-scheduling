@@ -2,14 +2,14 @@
 export const algorithmData = {
   montage: {
     deadlineSuccess: [
-      { factor: "1.0", DSAWS: 100, CGA: 0, Dyna: 100 },
-      { factor: "1.5", DSAWS: 100, CGA: 100, Dyna: 100 },
-      { factor: "2.0", DSAWS: 100, CGA: 100, Dyna: 100 },
+      { factor: "1.0", DSAWS: 82, CGA: 105, Dyna: 90 },
+      { factor: "1.5", DSAWS: 90, CGA: 98, Dyna: 95 },
+      { factor: "2.0", DSAWS: 75, CGA: 78, Dyna: 96 },
     ],
     executionCost: [
-      { factor: "1.0", DSAWS: 0.12, CGA: 0.18, Dyna: 0.25 },
-      { factor: "1.5", DSAWS: 0.08, CGA: 0.12, Dyna: 0.18 },
-      { factor: "2.0", DSAWS: 0.06, CGA: 0.09, Dyna: 0.15 },
+      { factor: "1.0", DSAWS: 0.18, CGA: 0.2, Dyna: 0.28 },
+      { factor: "1.5", DSAWS: 0.16, CGA: 0.17, Dyna: 0.24 },
+      { factor: "2.0", DSAWS: 0.14, CGA: 0.16, Dyna: 0.2 },
     ],
     vmUtilization: [
       { time: "0", DSAWS: 2, CGA: 3, Dyna: 2 },
@@ -24,14 +24,14 @@ export const algorithmData = {
   },
   cybershake: {
     deadlineSuccess: [
-      { factor: "1.0", DSAWS: 100, CGA: 0, Dyna: 0 },
-      { factor: "1.5", DSAWS: 100, CGA: 0, Dyna: 0 },
-      { factor: "2.0", DSAWS: 100, CGA: 0, Dyna: 100 },
+      { factor: "1.0", DSAWS: 95, CGA: 108, Dyna: 125 },
+      { factor: "1.5", DSAWS: 90, CGA: 108, Dyna: 105 },
+      { factor: "2.0", DSAWS: 79, CGA: 110, Dyna: 85 },
     ],
     executionCost: [
-      { factor: "1.0", DSAWS: 1.2, CGA: 2.1, Dyna: 2.5 },
-      { factor: "1.5", DSAWS: 0.8, CGA: 1.5, Dyna: 1.8 },
-      { factor: "2.0", DSAWS: 0.6, CGA: 1.2, Dyna: 1.5 },
+      { factor: "1.0", DSAWS: 2, CGA: 2.7, Dyna: 2.3 },
+      { factor: "1.5", DSAWS: 1.8, CGA: 2.6, Dyna: 2.7 },
+      { factor: "2.0", DSAWS: 1.7, CGA: 2, Dyna: 2.5 },
     ],
     vmUtilization: [
       { time: "0", DSAWS: 3, CGA: 4, Dyna: 3 },
@@ -46,14 +46,14 @@ export const algorithmData = {
   },
   ligo: {
     deadlineSuccess: [
-      { factor: "1.0", DSAWS: 100, CGA: 0, Dyna: 0 },
-      { factor: "1.5", DSAWS: 100, CGA: 0, Dyna: 0 },
-      { factor: "2.0", DSAWS: 100, CGA: 0, Dyna: 100 },
+      { factor: "1.0", DSAWS: 97, CGA: 150, Dyna: 135 },
+      { factor: "1.5", DSAWS: 90, CGA: 125, Dyna: 115 },
+      { factor: "2.0", DSAWS: 85, CGA: 110, Dyna: 100 },
     ],
     executionCost: [
-      { factor: "1.0", DSAWS: 2.5, CGA: 4.2, Dyna: 5.1 },
-      { factor: "1.5", DSAWS: 1.8, CGA: 3.5, Dyna: 4.2 },
-      { factor: "2.0", DSAWS: 1.2, CGA: 2.8, Dyna: 3.5 },
+      { factor: "1.0", DSAWS: 3.7, CGA: 4.2, Dyna: 5.3 },
+      { factor: "1.5", DSAWS: 3, CGA: 3.2, Dyna: 4.9 },
+      { factor: "2.0", DSAWS: 2.5, CGA: 2.8, Dyna: 4.8 },
     ],
     vmUtilization: [
       { time: "0", DSAWS: 4, CGA: 5, Dyna: 4 },
@@ -67,14 +67,14 @@ export const algorithmData = {
   },
   epigenomics: {
     deadlineSuccess: [
-      { factor: "1.0", DSAWS: 100, CGA: 0, Dyna: 0 },
-      { factor: "1.5", DSAWS: 100, CGA: 0, Dyna: 0 },
-      { factor: "2.0", DSAWS: 100, CGA: 100, Dyna: 100 },
+      { factor: "1.0", DSAWS: 97, CGA: 150, Dyna: 105 },
+      { factor: "1.5", DSAWS: 97, CGA: 110, Dyna: 103 },
+      { factor: "2.0", DSAWS: 96, CGA: 80, Dyna: 96 },
     ],
     executionCost: [
-      { factor: "1.0", DSAWS: 80, CGA: 120, Dyna: 140 },
-      { factor: "1.5", DSAWS: 60, CGA: 90, Dyna: 110 },
-      { factor: "2.0", DSAWS: 40, CGA: 70, Dyna: 90 },
+      { factor: "1.0", DSAWS: 70, CGA: 78, Dyna: 142 },
+      { factor: "1.5", DSAWS: 60, CGA: 77, Dyna: 119 },
+      { factor: "2.0", DSAWS: 56, CGA: 76, Dyna: 108 },
     ],
     vmUtilization: [
       { time: "0", DSAWS: 5, CGA: 7, Dyna: 6 },
@@ -85,24 +85,7 @@ export const algorithmData = {
       { time: "25000", DSAWS: 8, CGA: 12, Dyna: 10 },
       { time: "30000", DSAWS: 3, CGA: 5, Dyna: 4 },
     ],
-  },
-  sample: {
-    deadlineSuccess: [
-      { factor: "1.0", DSAWS: 50, CGA: 25, Dyna: 75 },
-      { factor: "1.5", DSAWS: 75, CGA: 50, Dyna: 90 },
-      { factor: "2.0", DSAWS: 90, CGA: 75, Dyna: 100 },
-    ],
-    executionCost: [
-      { factor: "1.0", DSAWS: 10, CGA: 15, Dyna: 20 },
-      { factor: "1.5", DSAWS: 8, CGA: 12, Dyna: 16 },
-      { factor: "2.0", DSAWS: 6, CGA: 9, Dyna: 12 },
-    ],
-    vmUtilization: [
-      { time: "0", DSAWS: 1, CGA: 2, Dyna: 1 },
-      { time: "50", DSAWS: 2, CGA: 3, Dyna: 2 },
-      { time: "100", DSAWS: 3, CGA: 4, Dyna: 3 },
-    ],
-  },
+  }
 }
 
 // Algorithm descriptions

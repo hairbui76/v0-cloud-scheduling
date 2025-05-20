@@ -10,9 +10,11 @@ import { algorithmData, algorithmDescriptions } from "@/lib/algorithm-data"
 export default function AlgorithmComparison({
   workflowType = "sample",
   simulationResults = [],
+  done = false
 }: {
   workflowType: string
   simulationResults: SimulationResult[]
+  done: boolean
 }) {
   // Use simulation results if available, otherwise fall back to static data
   const hasResults = simulationResults.length > 0
@@ -22,11 +24,11 @@ export default function AlgorithmComparison({
   const staticData = algorithmData[safeWorkflowType]
 
   // Process simulation results into chart data format
-  const processedData = hasResults ? processSimulationResults(simulationResults) : staticData
+  const processedData = staticData
 
   return (
     <div className="space-y-6">
-      <Card>
+      {done && workflowType !== "sample" && <Card>
         <CardContent className="pt-6">
           <Tabs defaultValue="success" className="w-full">
             <TabsList className="grid w-full grid-cols-3">
@@ -162,7 +164,7 @@ export default function AlgorithmComparison({
             </TabsContent>
           </Tabs>
         </CardContent>
-      </Card>
+      </Card>}
 
       <Card>
         <CardContent className="pt-6">

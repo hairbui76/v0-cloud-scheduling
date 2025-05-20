@@ -5,9 +5,11 @@ import AlgorithmComparison from "@/components/algorithm-comparison"
 import { useSimulation } from "@/context/simulation-context"
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 import { AlertCircle } from "lucide-react"
+import { useState } from "react"
 
 export default function AlgorithmComparisonSection() {
-  const { getSimulationWorkflowType, getResultsByWorkflow, simulationResults } = useSimulation()
+  const { getSimulationWorkflowType, getResultsByWorkflow } = useSimulation()
+  const [done, setDone] = useState(false)
 
   // Get the current workflow type from the simulation context
   const workflowType = getSimulationWorkflowType() || "sample"
@@ -37,7 +39,7 @@ export default function AlgorithmComparisonSection() {
                 </Alert>
               )}
 
-              <AlgorithmComparison workflowType={workflowType} simulationResults={resultsForWorkflow} />
+              <AlgorithmComparison workflowType={workflowType} simulationResults={resultsForWorkflow} done={done}/>
             </>
           )
         })()}
